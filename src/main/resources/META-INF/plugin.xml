@@ -1,0 +1,67 @@
+<!-- Plugin Configuration File. Read more: https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html -->
+<idea-plugin>
+    <!-- Unique identifier of the plugin. It should be FQN. It cannot be changed between the plugin versions. -->
+    <id>com.videogameaholic.intellij.starcoder</id>
+
+    <!-- Public plugin name should be written in Title Case.
+         Guidelines: https://plugins.jetbrains.com/docs/marketplace/plugin-overview-page.html#plugin-name -->
+    <name>StarCoder</name>
+
+    <!-- A displayed Vendor name or Organization ID displayed on the Plugins Page. -->
+    <vendor email="starcoder@videogameaholic.com" url="https://github.com/videogameaholic">videogameaholic</vendor>
+
+    <!-- Description of the plugin displayed on the Plugin Page and IDE Plugin Manager.
+         Simple HTML elements (text formatting, paragraphs, and lists) can be added inside of <![CDATA[ ]]> tag.
+         Guidelines: https://plugins.jetbrains.com/docs/marketplace/plugin-overview-page.html#plugin-description -->
+    <description><![CDATA[
+    Intellij plugin for StarCoder AI code completion via Hugging Face API
+    <br>
+    More information: <a href="https://huggingface.co/bigcode/starcoder">https://huggingface.co/bigcode/starcoder</a>
+    <br/></br>
+    <img width="" src="https://huggingface.co/datasets/bigcode/admin/resolve/main/StarCoderBanner.png" />
+    <br/></br>
+    <p><b>Features:</b><br/>
+    <ul>
+        <li>AI code completion suggestions as you type.</li>
+        <li>Modify API URL to switch between StarCoder models.</li>
+        <li>Advanced parameters for model tuning.</li>
+    </ul>
+    </p>
+    <br/>
+    <p><b>Getting Started:</b><br/>
+    <ol>
+        <li>Register on <a href="https://huggingface.co">https://huggingface.co</a></li>
+        <li>Generate bearer token on <a href="https://huggingface.co/settings/tokens">https://huggingface.co/settings/tokens</a></li>
+        <li>Enter the token in Preferences -> Editor -> General -> StarCoder.</li>
+    <ol>
+    </p>
+    ]]></description>
+
+    <change-notes><![CDATA[
+    <p>0.230619: This is the initial release of the plugin.</p>
+    ]]>
+    </change-notes>
+
+    <idea-version since-build="203.4818.26"/>
+
+    <!-- Product and plugin compatibility requirements.
+         Read more: https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html -->
+    <depends>com.intellij.modules.platform</depends>
+
+    <!-- Extension points defined by the plugin.
+         Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
+    <extensions defaultExtensionNs="com.intellij">
+        <editorOptionsProvider instance="com.videogameaholic.intellij.starcoder.settings.StarCoderSettingsProvider"/>
+
+        <applicationService serviceImplementation="com.videogameaholic.intellij.starcoder.StarCoderService"/>
+        <applicationService serviceImplementation="com.videogameaholic.intellij.starcoder.settings.StarCoderSettings"/>
+
+        <statusBarWidgetFactory id="StarCoderFactory"
+                                implementation="com.videogameaholic.intellij.starcoder.StarCoderWidgetFactory"
+                                order="before positionWidget"/>
+
+        <editorActionHandler action="EditorTab" implementationClass="com.videogameaholic.intellij.starcoder.CodeGenInsertAction"/>
+
+        <notificationGroup id="StarCoder" displayType="STICKY_BALLOON" isLogByDefault="true"/>
+    </extensions>
+</idea-plugin>
