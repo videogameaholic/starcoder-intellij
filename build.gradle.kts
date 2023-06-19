@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "com.videogameaholic"
-version = "1.0-SNAPSHOT"
+version = "0.230619"
 
 repositories {
     mavenCentral()
@@ -13,7 +13,7 @@ repositories {
 // Configure Gradle IntelliJ Plugin
 // Read more: https://plugins.jetbrains.com/docs/intellij/tools-gradle-intellij-plugin.html
 intellij {
-    version.set("2021.3.3")
+    version.set("2021.2")
     type.set("IC") // Target IDE Platform
 
     plugins.set(listOf(/* Plugin Dependencies */))
@@ -27,8 +27,8 @@ tasks {
     }
 
     patchPluginXml {
-        sinceBuild.set("213")
-        untilBuild.set("223.*")
+        sinceBuild.set("212")
+        untilBuild.set("300.*")
     }
 
     signPlugin {
