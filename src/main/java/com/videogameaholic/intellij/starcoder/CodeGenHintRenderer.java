@@ -15,8 +15,8 @@ public class CodeGenHintRenderer extends HintRenderer {
     protected TextAttributes getTextAttributes(Editor editor) {
         // TODO custom color schemes?
 //        TextAttributes newAttributes = editor.getColorsScheme().getAttributes(DefaultLanguageHighlighterColors.INLINE_PARAMETER_HINT);
-//        TextAttributes newAttributes = editor.getColorsScheme().getAttributes(DefaultLanguageHighlighterColors.LINE_COMMENT);
-        TextAttributes newAttributes = editor.getColorsScheme().getAttributes(DefaultLanguageHighlighterColors.INLAY_DEFAULT);
+        TextAttributes newAttributes = editor.getColorsScheme().getAttributes(DefaultLanguageHighlighterColors.LINE_COMMENT);
+//        TextAttributes newAttributes = editor.getColorsScheme().getAttributes(DefaultLanguageHighlighterColors.INLAY_DEFAULT);
 //        newAttributes.setFontType(Font.ITALIC);
         return newAttributes;
     }

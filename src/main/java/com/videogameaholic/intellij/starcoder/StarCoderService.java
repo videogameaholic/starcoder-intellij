@@ -31,7 +31,7 @@ public class StarCoderService {
         if(!settings.isEnabled()) return null;
 
         if(StringUtils.isEmpty(settings.getApiToken())) {
-            Notifications.Bus.notify(new Notification("StarCoder", "StarCoder API token is required.", NotificationType.WARNING));
+            Notifications.Bus.notify(new Notification("StarCoder","StarCoder", "StarCoder API token is required.", NotificationType.WARNING));
             return null;
         }
 
@@ -69,7 +69,6 @@ public class StarCoderService {
 
             // Check the response status code
             int statusCode = response.getStatusLine().getStatusCode();
-            System.out.println("status:" + statusCode);
             if (statusCode != 200) {
                 return null;
             }

@@ -96,21 +96,16 @@ implements StatusBarWidget.Multiframe, StatusBarWidget.TextPresentation,
         );
     }
 
-    private boolean isFocusedEditor(Editor editor) {
-        Component focusOwner = getFocusedComponent();
-        return focusOwner == editor.getContentComponent();
-    }
-
-    Editor getFocusedEditor() {
-        Component component = getFocusedComponent();
+    private Editor getFocusOwnerEditor() {
+        Component component = getFocusOwnerComponent();
         Editor editor = component instanceof EditorComponentImpl ? ((EditorComponentImpl)component).getEditor() : getEditor();
         return editor != null && !editor.isDisposed() ? editor : null;
     }
 
-    Component getFocusedComponent() {
+    private Component getFocusOwnerComponent() {
         Component focusOwner = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
         if (focusOwner == null) {
-            IdeFocusManager focusManager = IdeFocusManager.getInstance(myProject);
+            IdeFocusManager focusManager = IdeFocusManager.getInstance(getProject());
             Window frame = focusManager.getLastFocusedIdeWindow();
             if (frame != null) {
                 focusOwner = focusManager.getLastFocusedFor(frame);
@@ -121,7 +116,7 @@ implements StatusBarWidget.Multiframe, StatusBarWidget.TextPresentation,
 
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
-        updateInlayHints(getFocusedEditor());
+        updateInlayHints(getFocusOwnerEditor());
     }
 
     @Override

@@ -18,8 +18,6 @@
     <br>
     More information: <a href="https://huggingface.co/bigcode/starcoder">https://huggingface.co/bigcode/starcoder</a>
     <br/></br>
-    <img width="600" src="https://huggingface.co/datasets/bigcode/admin/resolve/main/StarCoderBanner.png" />
-    <br/></br>
     <p><b>Features:</b><br/>
     <ul>
         <li>AI code completion suggestions as you type.</li>
@@ -38,11 +36,11 @@
     ]]></description>
 
     <change-notes><![CDATA[
-    <p>0.230619: This is the initial release of the plugin.</p>
+    <p>0.230620: This is the initial release of the plugin.</p>
     ]]>
     </change-notes>
 
-    <idea-version since-build="203.4818.26"/>
+    <idea-version since-build="212.*"/>
 
     <!-- Product and plugin compatibility requirements.
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html -->
