@@ -14,8 +14,8 @@
          Simple HTML elements (text formatting, paragraphs, and lists) can be added inside of <![CDATA[ ]]> tag.
          Guidelines: https://plugins.jetbrains.com/docs/marketplace/plugin-overview-page.html#plugin-description -->
     <description><![CDATA[
-    Intellij plugin for StarCoder AI code completion via Hugging Face API
-    <br>
+    Intellij plugin for StarCoder AI code completion via Hugging Face API.
+    <br/>
     More information: <a href="https://huggingface.co/bigcode/starcoder">https://huggingface.co/bigcode/starcoder</a>
     <br/></br>
     <p><b>Features:</b><br/>
