@@ -69,14 +69,14 @@ implements StatusBarWidget.Multiframe, StatusBarWidget.TextPresentation,
 
     @Override
     public @Nullable @NlsContexts.Tooltip String getTooltipText() {
-        return StarCoderSettings.getInstance().isEnabled() ? "StarCoder enabled (Click to disable)" : "StarCoder disabled (Click to enable)";
+        return StarCoderSettings.getInstance().isSaytEnabled() ? "StarCoder enabled (Click to disable)" : "StarCoder disabled (Click to enable)";
     }
 
     @Override
     public @Nullable Consumer<MouseEvent> getClickConsumer() {
         // Toggle if the plugin is enabled.
         return mouseEvent -> {
-            StarCoderSettings.getInstance().toggleEnabled();
+            StarCoderSettings.getInstance().toggleSaytEnabled();
             if(myStatusBar != null) {
                 myStatusBar.updateWidget(ID);
             }
@@ -160,32 +160,6 @@ implements StatusBarWidget.Multiframe, StatusBarWidget.TextPresentation,
 
         // If cursor hasn't moved, don't do anything.
         if (lastPosition == currentPosition) return;
-
-        // If the contents have not changed since our last suggestion, don't do anything.
-        // TODO try psi file maybe?
-        // Psi file updates more realtimey but weirdness with the cursor?
-        // Cursor weirdness is that the afterDocumentChange fires first,
-        // and the cursor hasn't moved yet.  caretPositionChanged fires after.
-        // if we update the hint before the caret position changes then it's in the wrong spot,
-        // but if we only look at the caretPositionChanged even then the file hasn't been
-        // modified yet.
-
-        // Idea:  Do we want to reset the hintModified flag afterDocumentChange,
-        // then it will trigger on the next caretPositionChanged? Does that affect
-        // the next click after that?
-
-        // TODO figure out how to determine file modified.
-        // Do we need to cache the entire document?
-
-//        PsiFile thisGuy = PsiManagerImpl.getInstance(getProject()).findFile(file);
-//        if(file.getUserData(STAR_CODER_UPDATE) != null) {
-//            long fileModified = thisGuy.getModificationStamp();
-//            long vFileModified = file.getModificationStamp();
-//////            long fileModified = file.getTimeStamp();
-//            long hintModified = file.getUserData(STAR_CODER_UPDATE);
-//            System.out.println("vFileModified: " + vFileModified + " fileModified: " + fileModified + " hintModified: " + hintModified + " current time: " + System.currentTimeMillis());
-//            if (fileModified <= hintModified) return;
-//        }
 
         // Check the existing inline hint (not blocks) if it exists.
         InlayModel inlayModel = focusedEditor.getInlayModel();

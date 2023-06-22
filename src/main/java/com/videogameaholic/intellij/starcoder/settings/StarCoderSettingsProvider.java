@@ -36,6 +36,7 @@ public class StarCoderSettingsProvider implements EditorOptionsProvider {
 
         return !savedSettings.getApiURL().equals(settingsPanel.getApiUrl())
                 || !savedSettings.getApiToken().equals(settingsPanel.getApiToken())
+                || savedSettings.isSaytEnabled() != settingsPanel.getEnableSAYTCheckBox()
                 || savedSettings.getTemperature() != Float.parseFloat(settingsPanel.getTemperature())
                 || savedSettings.getMaxNewTokens() != Integer.parseInt(settingsPanel.getMaxNewTokens())
                 || savedSettings.getTopP() != Float.parseFloat(settingsPanel.getTopP())
@@ -48,11 +49,13 @@ public class StarCoderSettingsProvider implements EditorOptionsProvider {
 
         savedSettings.setApiURL(settingsPanel.getApiUrl());
         savedSettings.setApiToken(settingsPanel.getApiToken());
+        savedSettings.setSaytEnabled(settingsPanel.getEnableSAYTCheckBox());
         savedSettings.setTemperature(settingsPanel.getTemperature());
         savedSettings.setMaxNewTokens(settingsPanel.getMaxNewTokens());
         savedSettings.setTopP(settingsPanel.getTopP());
         savedSettings.setRepetitionPenalty(settingsPanel.getRepetition());
 
+        // TODO Call update on the statusBarWidget
     }
 
     @Override
@@ -61,6 +64,7 @@ public class StarCoderSettingsProvider implements EditorOptionsProvider {
 
         settingsPanel.setApiUrl(savedSettings.getApiURL());
         settingsPanel.setApiToken(savedSettings.getApiToken());
+        settingsPanel.setEnableSAYTCheckBox(savedSettings.isSaytEnabled());
         settingsPanel.setTemperature(String.valueOf(savedSettings.getTemperature()));
         settingsPanel.setMaxNewTokens(String.valueOf(savedSettings.getMaxNewTokens()));
         settingsPanel.setTopP(String.valueOf(savedSettings.getTopP()));

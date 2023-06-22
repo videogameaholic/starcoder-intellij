@@ -62,4 +62,12 @@
 
         <notificationGroup id="StarCoder" displayType="STICKY_BALLOON" isLogByDefault="true"/>
     </extensions>
+    <actions>
+        <action class="com.videogameaholic.intellij.starcoder.CodeGenPromptAction"
+                id="com.videogameaholic.intellij.starcoder.CodeGenPromptAction"
+                text="StarCoder Prompt">
+            <add-to-group group-id="EditorPopupMenu"/>
+            <keyboard-shortcut first-keystroke="control alt R" keymap="$default"/>
+        </action>
+    </actions>
 </idea-plugin>
