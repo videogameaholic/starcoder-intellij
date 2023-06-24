@@ -14,6 +14,7 @@ More information: https://huggingface.co/bigcode/starcoder
 
 ## Getting Started:
 
-1.  Register on https://huggingface.co
-2.  Generate bearer token on https://huggingface.co/settings/tokens
-3.  Enter the token in Preferences -> Editor -> General -> StarCoder.
+1. Register on https://huggingface.co
+2. Generate bearer token on https://huggingface.co/settings/tokens
+3. Enter the token in Preferences -> Editor -> General -> StarCoder
+4. Suggestions appear as you type if enabled, or right-click selected text to manually prompt.

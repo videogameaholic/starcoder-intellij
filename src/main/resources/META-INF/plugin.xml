@@ -21,6 +21,7 @@
     <p><b>Features:</b><br/>
     <ul>
         <li>AI code completion suggestions as you type.</li>
+        <li>Prompt AI with selected text in the editor.</li>
         <li>Modify API URL to switch between StarCoder models.</li>
         <li>Advanced parameters for model tuning.</li>
     </ul>
@@ -30,12 +31,14 @@
     <ol>
         <li>Register on <a href="https://huggingface.co">https://huggingface.co</a></li>
         <li>Generate bearer token on <a href="https://huggingface.co/settings/tokens">https://huggingface.co/settings/tokens</a></li>
-        <li>Enter the token in Preferences -> Editor -> General -> StarCoder.</li>
+        <li>Enter the token in Preferences -> Editor -> General -> StarCoder</li>
+        <li>Suggestions appear as you type if enabled, or right-click selected text to manually prompt.</li>
     <ol>
     </p>
     ]]></description>
 
     <change-notes><![CDATA[
+    <p>XXX: Added manual prompt through right-click > StarCoder Prompt (hotkey CTRL+ALT+R)
     <p>0.230620: This is the initial release of the plugin.</p>
     ]]>
     </change-notes>

@@ -155,7 +155,8 @@ implements StatusBarWidget.Multiframe, StatusBarWidget.TextPresentation,
             return;
         }
 
-        int lastPosition = (file.getUserData(STAR_CODER_POSITION)==null) ? 0 : file.getUserData(STAR_CODER_POSITION);
+        Integer starCoderPos = file.getUserData(STAR_CODER_POSITION);
+        int lastPosition = (starCoderPos==null) ? 0 : starCoderPos;
         int currentPosition = focusedEditor.getCaretModel().getOffset();
 
         // If cursor hasn't moved, don't do anything.
@@ -172,9 +173,11 @@ implements StatusBarWidget.Multiframe, StatusBarWidget.TextPresentation,
                     // They typed the same thing that we suggested.
                     // Update the hint rather than calling the API to suggest a new one.
                     // We only need to modify the inline hint and any block hints will remain unchanged.
-                    inlineHint = inlineHint.substring(modifiedText.length());
                     inlayModel.getInlineElementsInRange(lastPosition, currentPosition).forEach(this::disposeInlayHints);
-                    inlayModel.addInlineElement(currentPosition, true, new CodeGenHintRenderer(inlineHint));
+                    inlineHint = inlineHint.substring(modifiedText.length());
+                    if(inlineHint.length()>0) {
+                        inlayModel.addInlineElement(currentPosition, true, new CodeGenHintRenderer(inlineHint));
+                    }
 
                     // Update the UserData
                     existingHints[0] = inlineHint;
@@ -206,13 +209,16 @@ implements StatusBarWidget.Multiframe, StatusBarWidget.TextPresentation,
 
     private void addCodeSuggestion(Editor focusedEditor, VirtualFile file, int suggestionPosition, String[] hintList) {
         WriteCommandAction.runWriteCommandAction(focusedEditor.getProject(), () -> {
-            // Discard this update if the position has changed.
+            // Discard this update if the position has changed or text is now selected.
             if (suggestionPosition != focusedEditor.getCaretModel().getOffset()) return;
+            if (focusedEditor.getSelectionModel().getSelectedText() != null) return;
 
             file.putUserData(STAR_CODER_CODE_SUGGESTION, hintList);
             file.putUserData(STAR_CODER_POSITION, suggestionPosition);
 
             InlayModel inlayModel = focusedEditor.getInlayModel();
+            inlayModel.getInlineElementsInRange(0, focusedEditor.getDocument().getTextLength()).forEach(this::disposeInlayHints);
+            inlayModel.getBlockElementsInRange(0, focusedEditor.getDocument().getTextLength()).forEach(this::disposeInlayHints);
             if (hintList != null && hintList.length > 0) {
                 // The first line is an inline element
                 if (hintList[0].trim().length() > 0) {

@@ -21,6 +21,7 @@ import java.io.IOException;
 
 public class StarCoderService {
 
+    // TODO: SantaCoder uses - rather than _
     private static final String PREFIX_TAG = "<fim_prefix>";
     private static final String SUFFIX_TAG = "<fim_suffix>";
     private static final String MIDDLE_TAG = "<fim_middle>";
@@ -35,14 +36,14 @@ public class StarCoderService {
             return null;
         }
 
-        // TODO check for the TAGs in the editorContents and return early.
+        String contents = editorContents.toString();
+        if(contents.contains(PREFIX_TAG) || contents.contains(SUFFIX_TAG) || contents.contains(MIDDLE_TAG) || contents.contains(END_TAG)) return null;
 
-        String prefix = editorContents.subSequence(0, cursorPosition).toString();
-        String suffix = editorContents.subSequence(cursorPosition, editorContents.length()).toString();
+        String prefix = contents.substring(0, cursorPosition);
+        String suffix = contents.substring(cursorPosition, editorContents.length());
         String starCoderPrompt = generateFIMPrompt(prefix, suffix);
 
         HttpPost httpPost = buildApiPost(settings, starCoderPrompt);
-
         try {
             CloseableHttpClient httpClient = HttpClients.createDefault();
             HttpResponse response = httpClient.execute(httpPost);

@@ -2,7 +2,11 @@ package com.videogameaholic.intellij.starcoder.settings;
 
 import com.intellij.application.options.editor.EditorOptionsProvider;
 import com.intellij.openapi.options.ConfigurationException;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.util.NlsContexts;
+import com.intellij.openapi.wm.WindowManager;
+import com.videogameaholic.intellij.starcoder.StarCoderWidget;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -55,7 +59,10 @@ public class StarCoderSettingsProvider implements EditorOptionsProvider {
         savedSettings.setTopP(settingsPanel.getTopP());
         savedSettings.setRepetitionPenalty(settingsPanel.getRepetition());
 
-        // TODO Call update on the statusBarWidget
+        // Update the widget
+        for (Project openProject : ProjectManager.getInstance().getOpenProjects()) {
+            WindowManager.getInstance().getStatusBar(openProject).updateWidget(StarCoderWidget.ID);
+        }
     }
 
     @Override
