@@ -23,24 +23,31 @@ public class CodeGenInsertAction extends EditorWriteActionHandler {
 
     @Override
     public void executeWriteAction(@NotNull Editor editor, @Nullable Caret caret, DataContext dataContext) {
-        if(!insertCodeSuggestion(editor, dataContext)) {
+        if(!insertCodeSuggestion(editor, caret, dataContext)) {
             myOriginalHandler.execute(editor, caret, dataContext);
         }
     }
 
-    private boolean insertCodeSuggestion(Editor editor, DataContext dataContext) {
+    private boolean insertCodeSuggestion(Editor editor, @Nullable Caret caret, DataContext dataContext) {
         VirtualFile file = dataContext.getData(CommonDataKeys.VIRTUAL_FILE);
         if (file == null) return false;
 
         String[] hints = file.getUserData(StarCoderWidget.STAR_CODER_CODE_SUGGESTION);
         if((hints == null) || (hints.length == 0)) return false;
+        if(hints[0].trim().length() == 0 && hints.length == 1) return false;
 
         StringJoiner insertTextJoiner = new StringJoiner("\n");
         for (String hint : hints) {
             insertTextJoiner.add(hint);
         }
+
+        Integer starCoderPos = file.getUserData(StarCoderWidget.STAR_CODER_POSITION);
+        int lastPosition = (starCoderPos==null) ? 0 : starCoderPos;
+        if((caret == null) || (caret.getOffset() != lastPosition)) return false;
+
+        file.putUserData(StarCoderWidget.STAR_CODER_CODE_SUGGESTION, null);
+
         String insertText = insertTextJoiner.toString();
-        int lastPosition = (file.getUserData(StarCoderWidget.STAR_CODER_POSITION)==null) ? 0 : file.getUserData(StarCoderWidget.STAR_CODER_POSITION);
         WriteCommandAction.runWriteCommandAction(editor.getProject(), () -> {
             editor.getDocument().insertString(lastPosition, insertText);
             editor.getCaretModel().moveToOffset(lastPosition + insertText.length());

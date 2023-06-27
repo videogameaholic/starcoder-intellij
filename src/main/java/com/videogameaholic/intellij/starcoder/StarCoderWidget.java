@@ -2,10 +2,7 @@ package com.videogameaholic.intellij.starcoder;
 
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.openapi.editor.Editor;
-import com.intellij.openapi.editor.EditorFactory;
-import com.intellij.openapi.editor.Inlay;
-import com.intellij.openapi.editor.InlayModel;
+import com.intellij.openapi.editor.*;
 import com.intellij.openapi.editor.event.*;
 import com.intellij.openapi.editor.impl.EditorComponentImpl;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
@@ -32,7 +29,7 @@ import java.util.concurrent.CompletableFuture;
 
 public class StarCoderWidget extends EditorBasedWidget
 implements StatusBarWidget.Multiframe, StatusBarWidget.TextPresentation,
-        CaretListener, PropertyChangeListener, SelectionListener {
+        CaretListener, SelectionListener, BulkAwareDocumentListener.Simple, PropertyChangeListener {
     public static final String ID = "StarCoderWidget";
 
     public static final Key<String[]> STAR_CODER_CODE_SUGGESTION = new Key<>("StarCoder Code Suggestion");
@@ -69,14 +66,14 @@ implements StatusBarWidget.Multiframe, StatusBarWidget.TextPresentation,
 
     @Override
     public @Nullable @NlsContexts.Tooltip String getTooltipText() {
-        return StarCoderSettings.getInstance().isEnabled() ? "StarCoder enabled (Click to disable)" : "StarCoder disabled (Click to enable)";
+        return StarCoderSettings.getInstance().isSaytEnabled() ? "StarCoder enabled (Click to disable)" : "StarCoder disabled (Click to enable)";
     }
 
     @Override
     public @Nullable Consumer<MouseEvent> getClickConsumer() {
         // Toggle if the plugin is enabled.
         return mouseEvent -> {
-            StarCoderSettings.getInstance().toggleEnabled();
+            StarCoderSettings.getInstance().toggleSaytEnabled();
             if(myStatusBar != null) {
                 myStatusBar.updateWidget(ID);
             }
@@ -89,6 +86,7 @@ implements StatusBarWidget.Multiframe, StatusBarWidget.TextPresentation,
         EditorEventMulticaster multicaster = EditorFactory.getInstance().getEventMulticaster();
         multicaster.addCaretListener(this, this);
         multicaster.addSelectionListener(this, this);
+        multicaster.addDocumentListener(this,this);
         KeyboardFocusManager.getCurrentKeyboardFocusManager().addPropertyChangeListener(SWING_FOCUS_OWNER_PROPERTY, this);
         Disposer.register(this,
                 () -> KeyboardFocusManager.getCurrentKeyboardFocusManager().removePropertyChangeListener(SWING_FOCUS_OWNER_PROPERTY,
@@ -114,6 +112,11 @@ implements StatusBarWidget.Multiframe, StatusBarWidget.TextPresentation,
         return focusOwner;
     }
 
+    private boolean isFocusedEditor(Editor editor) {
+        Component focusOwner = getFocusOwnerComponent();
+        return focusOwner == editor.getContentComponent();
+    }
+
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
         updateInlayHints(getFocusOwnerEditor());
@@ -132,6 +135,20 @@ implements StatusBarWidget.Multiframe, StatusBarWidget.TextPresentation,
     @Override
     public void caretAdded(@NotNull CaretEvent event) {
         updateInlayHints(event.getEditor());
+    }
+
+    @Override
+    public void caretRemoved(@NotNull CaretEvent event) {
+        updateInlayHints(event.getEditor());
+    }
+
+    @Override
+    public void afterDocumentChange (Document document) {
+        updateInlayHints(getFocusOwnerEditor());
+        EditorFactory.getInstance().editors(document)
+                .filter(this::isFocusedEditor)
+                .findFirst()
+                .ifPresent(this::updateInlayHints);
     }
 
     private void updateInlayHints(Editor focusedEditor) {
@@ -155,37 +172,12 @@ implements StatusBarWidget.Multiframe, StatusBarWidget.TextPresentation,
             return;
         }
 
-        int lastPosition = (file.getUserData(STAR_CODER_POSITION)==null) ? 0 : file.getUserData(STAR_CODER_POSITION);
+        Integer starCoderPos = file.getUserData(STAR_CODER_POSITION);
+        int lastPosition = (starCoderPos==null) ? 0 : starCoderPos;
         int currentPosition = focusedEditor.getCaretModel().getOffset();
 
         // If cursor hasn't moved, don't do anything.
         if (lastPosition == currentPosition) return;
-
-        // If the contents have not changed since our last suggestion, don't do anything.
-        // TODO try psi file maybe?
-        // Psi file updates more realtimey but weirdness with the cursor?
-        // Cursor weirdness is that the afterDocumentChange fires first,
-        // and the cursor hasn't moved yet.  caretPositionChanged fires after.
-        // if we update the hint before the caret position changes then it's in the wrong spot,
-        // but if we only look at the caretPositionChanged even then the file hasn't been
-        // modified yet.
-
-        // Idea:  Do we want to reset the hintModified flag afterDocumentChange,
-        // then it will trigger on the next caretPositionChanged? Does that affect
-        // the next click after that?
-
-        // TODO figure out how to determine file modified.
-        // Do we need to cache the entire document?
-
-//        PsiFile thisGuy = PsiManagerImpl.getInstance(getProject()).findFile(file);
-//        if(file.getUserData(STAR_CODER_UPDATE) != null) {
-//            long fileModified = thisGuy.getModificationStamp();
-//            long vFileModified = file.getModificationStamp();
-//////            long fileModified = file.getTimeStamp();
-//            long hintModified = file.getUserData(STAR_CODER_UPDATE);
-//            System.out.println("vFileModified: " + vFileModified + " fileModified: " + fileModified + " hintModified: " + hintModified + " current time: " + System.currentTimeMillis());
-//            if (fileModified <= hintModified) return;
-//        }
 
         // Check the existing inline hint (not blocks) if it exists.
         InlayModel inlayModel = focusedEditor.getInlayModel();
@@ -198,9 +190,11 @@ implements StatusBarWidget.Multiframe, StatusBarWidget.TextPresentation,
                     // They typed the same thing that we suggested.
                     // Update the hint rather than calling the API to suggest a new one.
                     // We only need to modify the inline hint and any block hints will remain unchanged.
-                    inlineHint = inlineHint.substring(modifiedText.length());
                     inlayModel.getInlineElementsInRange(lastPosition, currentPosition).forEach(this::disposeInlayHints);
-                    inlayModel.addInlineElement(currentPosition, true, new CodeGenHintRenderer(inlineHint));
+                    inlineHint = inlineHint.substring(modifiedText.length());
+                    if(inlineHint.length()>0) {
+                        inlayModel.addInlineElement(currentPosition, true, new CodeGenHintRenderer(inlineHint));
+                    }
 
                     // Update the UserData
                     existingHints[0] = inlineHint;
@@ -232,13 +226,16 @@ implements StatusBarWidget.Multiframe, StatusBarWidget.TextPresentation,
 
     private void addCodeSuggestion(Editor focusedEditor, VirtualFile file, int suggestionPosition, String[] hintList) {
         WriteCommandAction.runWriteCommandAction(focusedEditor.getProject(), () -> {
-            // Discard this update if the position has changed.
+            // Discard this update if the position has changed or text is now selected.
             if (suggestionPosition != focusedEditor.getCaretModel().getOffset()) return;
+            if (focusedEditor.getSelectionModel().getSelectedText() != null) return;
 
             file.putUserData(STAR_CODER_CODE_SUGGESTION, hintList);
             file.putUserData(STAR_CODER_POSITION, suggestionPosition);
 
             InlayModel inlayModel = focusedEditor.getInlayModel();
+            inlayModel.getInlineElementsInRange(0, focusedEditor.getDocument().getTextLength()).forEach(this::disposeInlayHints);
+            inlayModel.getBlockElementsInRange(0, focusedEditor.getDocument().getTextLength()).forEach(this::disposeInlayHints);
             if (hintList != null && hintList.length > 0) {
                 // The first line is an inline element
                 if (hintList[0].trim().length() > 0) {

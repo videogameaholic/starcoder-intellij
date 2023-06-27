@@ -21,6 +21,7 @@ import java.io.IOException;
 
 public class StarCoderService {
 
+    // TODO: SantaCoder uses - rather than _
     private static final String PREFIX_TAG = "<fim_prefix>";
     private static final String SUFFIX_TAG = "<fim_suffix>";
     private static final String MIDDLE_TAG = "<fim_middle>";
@@ -28,13 +29,37 @@ public class StarCoderService {
 
     public String[] getCodeCompletionHints(CharSequence editorContents, int cursorPosition) {
         StarCoderSettings settings = StarCoderSettings.getInstance();
-        if(!settings.isEnabled()) return null;
+        if(!settings.isSaytEnabled()) return null;
 
         if(StringUtils.isEmpty(settings.getApiToken())) {
             Notifications.Bus.notify(new Notification("StarCoder","StarCoder", "StarCoder API token is required.", NotificationType.WARNING));
             return null;
         }
 
+        String contents = editorContents.toString();
+        if(contents.contains(PREFIX_TAG) || contents.contains(SUFFIX_TAG) || contents.contains(MIDDLE_TAG) || contents.contains(END_TAG)) return null;
+
+        String prefix = contents.substring(0, cursorPosition);
+        String suffix = contents.substring(cursorPosition, editorContents.length());
+        String starCoderPrompt = generateFIMPrompt(prefix, suffix);
+
+        HttpPost httpPost = buildApiPost(settings, starCoderPrompt);
+        String generatedText = getApiResponse(httpPost);
+        String[] suggestionList = null;
+        if(generatedText.contains(MIDDLE_TAG)) {
+            String[] parts = generatedText.split(MIDDLE_TAG);
+            if(parts.length > 0) {
+                suggestionList = StringUtils.splitPreserveAllTokens(parts[1], "\n");
+            }
+        }
+        return suggestionList;
+    }
+
+    private String generateFIMPrompt(String prefix, String suffix) {
+        return PREFIX_TAG + prefix + SUFFIX_TAG + suffix + MIDDLE_TAG;
+    }
+
+    private HttpPost buildApiPost (StarCoderSettings settings, String starCoderPrompt) {
         String apiURL = settings.getApiURL();
         String bearerToken = settings.getApiToken();
         float temperature = settings.getTemperature();
@@ -44,11 +69,6 @@ public class StarCoderService {
 
         HttpPost httpPost = new HttpPost(apiURL);
         httpPost.setHeader(HttpHeaders.AUTHORIZATION, "Bearer " + bearerToken);
-
-        String prefix = editorContents.subSequence(0, cursorPosition).toString();
-        String suffix = editorContents.subSequence(cursorPosition, editorContents.length()).toString();
-        String starCoderPrompt = generateFIMPrompt(prefix, suffix);
-
         JsonObject httpBody = new JsonObject();
         httpBody.addProperty("inputs", starCoderPrompt);
 
@@ -61,16 +81,19 @@ public class StarCoderService {
 
         StringEntity requestEntity = new StringEntity(httpBody.toString(), ContentType.APPLICATION_JSON);
         httpPost.setEntity(requestEntity);
+        return httpPost;
+    }
 
+    private String getApiResponse(HttpPost httpPost) {
+        String responseText = "";
         try {
             CloseableHttpClient httpClient = HttpClients.createDefault();
             HttpResponse response = httpClient.execute(httpPost);
-            String[] suggestionList = null;
 
             // Check the response status code
             int statusCode = response.getStatusLine().getStatusCode();
             if (statusCode != 200) {
-                return null;
+                return responseText;
             }
 
             Gson gson = new Gson();
@@ -81,25 +104,34 @@ public class StarCoderService {
                 JsonObject responseObject = responseArray.get(0).getAsJsonObject();
                 if(responseObject.get("generated_text")!=null) {
                     generatedText = responseObject.get("generated_text").getAsString();
-                    if(generatedText.contains(MIDDLE_TAG)) {
-                        String[] parts = generatedText.split(MIDDLE_TAG);
-                        String suggestion = parts[1].replace(END_TAG, "");
-                        suggestionList = StringUtils.splitPreserveAllTokens(suggestion, "\n");
-                    }
+                    responseText = generatedText.replace(END_TAG, "");
                 }
             }
 
             httpClient.close();
-            return suggestionList;
-
 
         } catch (IOException e) {
             // TODO log exception
-            return null;
         }
+        return responseText;
     }
 
-    private String generateFIMPrompt(String prefix, String suffix) {
-        return PREFIX_TAG + prefix + SUFFIX_TAG + suffix + MIDDLE_TAG;
+    public String replacementSuggestion (String prompt) {
+        // Default to returning the same text.
+        String replacement = prompt;
+
+        StarCoderSettings settings = StarCoderSettings.getInstance();
+        if(StringUtils.isEmpty(settings.getApiToken())) {
+            Notifications.Bus.notify(new Notification("StarCoder","StarCoder", "StarCoder API token is required.", NotificationType.WARNING));
+            return replacement;
+        }
+
+        HttpPost httpPost = buildApiPost(settings, prompt);
+        String generatedText = getApiResponse(httpPost);
+        if(!StringUtils.isEmpty(generatedText)) {
+            replacement = generatedText;
+        }
+
+        return replacement;
     }
 }

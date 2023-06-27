@@ -2,7 +2,11 @@ package com.videogameaholic.intellij.starcoder.settings;
 
 import com.intellij.application.options.editor.EditorOptionsProvider;
 import com.intellij.openapi.options.ConfigurationException;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.util.NlsContexts;
+import com.intellij.openapi.wm.WindowManager;
+import com.videogameaholic.intellij.starcoder.StarCoderWidget;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -36,6 +40,7 @@ public class StarCoderSettingsProvider implements EditorOptionsProvider {
 
         return !savedSettings.getApiURL().equals(settingsPanel.getApiUrl())
                 || !savedSettings.getApiToken().equals(settingsPanel.getApiToken())
+                || savedSettings.isSaytEnabled() != settingsPanel.getEnableSAYTCheckBox()
                 || savedSettings.getTemperature() != Float.parseFloat(settingsPanel.getTemperature())
                 || savedSettings.getMaxNewTokens() != Integer.parseInt(settingsPanel.getMaxNewTokens())
                 || savedSettings.getTopP() != Float.parseFloat(settingsPanel.getTopP())
@@ -48,11 +53,16 @@ public class StarCoderSettingsProvider implements EditorOptionsProvider {
 
         savedSettings.setApiURL(settingsPanel.getApiUrl());
         savedSettings.setApiToken(settingsPanel.getApiToken());
+        savedSettings.setSaytEnabled(settingsPanel.getEnableSAYTCheckBox());
         savedSettings.setTemperature(settingsPanel.getTemperature());
         savedSettings.setMaxNewTokens(settingsPanel.getMaxNewTokens());
         savedSettings.setTopP(settingsPanel.getTopP());
         savedSettings.setRepetitionPenalty(settingsPanel.getRepetition());
 
+        // Update the widget
+        for (Project openProject : ProjectManager.getInstance().getOpenProjects()) {
+            WindowManager.getInstance().getStatusBar(openProject).updateWidget(StarCoderWidget.ID);
+        }
     }
 
     @Override
@@ -61,6 +71,7 @@ public class StarCoderSettingsProvider implements EditorOptionsProvider {
 
         settingsPanel.setApiUrl(savedSettings.getApiURL());
         settingsPanel.setApiToken(savedSettings.getApiToken());
+        settingsPanel.setEnableSAYTCheckBox(savedSettings.isSaytEnabled());
         settingsPanel.setTemperature(String.valueOf(savedSettings.getTemperature()));
         settingsPanel.setMaxNewTokens(String.valueOf(savedSettings.getMaxNewTokens()));
         settingsPanel.setTopP(String.valueOf(savedSettings.getTopP()));

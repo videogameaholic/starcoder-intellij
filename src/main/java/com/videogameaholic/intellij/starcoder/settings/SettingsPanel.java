@@ -13,6 +13,7 @@ public class SettingsPanel {
     private JTextField maxNewTokensTextField;
     private JTextField topPTextField;
     private JTextField repetitionTextField;
+    private JCheckBox enableSAYTCheckBox;
 
     public JComponent getPanel() {
         return panel;
@@ -64,5 +65,13 @@ public class SettingsPanel {
 
     public void setRepetition(String repetition) {
         repetitionTextField.setText(repetition);
+    }
+
+    public boolean getEnableSAYTCheckBox() {
+        return enableSAYTCheckBox.isSelected();
+    }
+
+    public void setEnableSAYTCheckBox(boolean enableSAYT) {
+        enableSAYTCheckBox.setSelected(enableSAYT);
     }
 }
