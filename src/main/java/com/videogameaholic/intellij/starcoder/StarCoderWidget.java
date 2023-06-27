@@ -2,10 +2,7 @@ package com.videogameaholic.intellij.starcoder;
 
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.openapi.editor.Editor;
-import com.intellij.openapi.editor.EditorFactory;
-import com.intellij.openapi.editor.Inlay;
-import com.intellij.openapi.editor.InlayModel;
+import com.intellij.openapi.editor.*;
 import com.intellij.openapi.editor.event.*;
 import com.intellij.openapi.editor.impl.EditorComponentImpl;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
@@ -32,7 +29,7 @@ import java.util.concurrent.CompletableFuture;
 
 public class StarCoderWidget extends EditorBasedWidget
 implements StatusBarWidget.Multiframe, StatusBarWidget.TextPresentation,
-        CaretListener, PropertyChangeListener, SelectionListener {
+        CaretListener, SelectionListener, BulkAwareDocumentListener.Simple, PropertyChangeListener {
     public static final String ID = "StarCoderWidget";
 
     public static final Key<String[]> STAR_CODER_CODE_SUGGESTION = new Key<>("StarCoder Code Suggestion");
@@ -89,6 +86,7 @@ implements StatusBarWidget.Multiframe, StatusBarWidget.TextPresentation,
         EditorEventMulticaster multicaster = EditorFactory.getInstance().getEventMulticaster();
         multicaster.addCaretListener(this, this);
         multicaster.addSelectionListener(this, this);
+        multicaster.addDocumentListener(this,this);
         KeyboardFocusManager.getCurrentKeyboardFocusManager().addPropertyChangeListener(SWING_FOCUS_OWNER_PROPERTY, this);
         Disposer.register(this,
                 () -> KeyboardFocusManager.getCurrentKeyboardFocusManager().removePropertyChangeListener(SWING_FOCUS_OWNER_PROPERTY,
@@ -114,6 +112,11 @@ implements StatusBarWidget.Multiframe, StatusBarWidget.TextPresentation,
         return focusOwner;
     }
 
+    private boolean isFocusedEditor(Editor editor) {
+        Component focusOwner = getFocusOwnerComponent();
+        return focusOwner == editor.getContentComponent();
+    }
+
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
         updateInlayHints(getFocusOwnerEditor());
@@ -132,6 +135,20 @@ implements StatusBarWidget.Multiframe, StatusBarWidget.TextPresentation,
     @Override
     public void caretAdded(@NotNull CaretEvent event) {
         updateInlayHints(event.getEditor());
+    }
+
+    @Override
+    public void caretRemoved(@NotNull CaretEvent event) {
+        updateInlayHints(event.getEditor());
+    }
+
+    @Override
+    public void afterDocumentChange (Document document) {
+        updateInlayHints(getFocusOwnerEditor());
+        EditorFactory.getInstance().editors(document)
+                .filter(this::isFocusedEditor)
+                .findFirst()
+                .ifPresent(this::updateInlayHints);
     }
 
     private void updateInlayHints(Editor focusedEditor) {

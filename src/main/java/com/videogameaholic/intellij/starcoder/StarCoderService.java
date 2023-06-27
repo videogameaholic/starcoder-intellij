@@ -44,41 +44,15 @@ public class StarCoderService {
         String starCoderPrompt = generateFIMPrompt(prefix, suffix);
 
         HttpPost httpPost = buildApiPost(settings, starCoderPrompt);
-        try {
-            CloseableHttpClient httpClient = HttpClients.createDefault();
-            HttpResponse response = httpClient.execute(httpPost);
-            String[] suggestionList = null;
-
-            // Check the response status code
-            int statusCode = response.getStatusLine().getStatusCode();
-            if (statusCode != 200) {
-                return null;
+        String generatedText = getApiResponse(httpPost);
+        String[] suggestionList = null;
+        if(generatedText.contains(MIDDLE_TAG)) {
+            String[] parts = generatedText.split(MIDDLE_TAG);
+            if(parts.length > 0) {
+                suggestionList = StringUtils.splitPreserveAllTokens(parts[1], "\n");
             }
-
-            Gson gson = new Gson();
-            String responseBody = EntityUtils.toString(response.getEntity());
-            JsonArray responseArray = gson.fromJson(responseBody, JsonArray.class);
-            String generatedText;
-            if(responseArray.size()>0) {
-                JsonObject responseObject = responseArray.get(0).getAsJsonObject();
-                if(responseObject.get("generated_text")!=null) {
-                    generatedText = responseObject.get("generated_text").getAsString();
-                    if(generatedText.contains(MIDDLE_TAG)) {
-                        String[] parts = generatedText.split(MIDDLE_TAG);
-                        String suggestion = parts[1].replace(END_TAG, "");
-                        suggestionList = StringUtils.splitPreserveAllTokens(suggestion, "\n");
-                    }
-                }
-            }
-
-            httpClient.close();
-            return suggestionList;
-
-
-        } catch (IOException e) {
-            // TODO log exception
-            return null;
         }
+        return suggestionList;
     }
 
     private String generateFIMPrompt(String prefix, String suffix) {
@@ -110,20 +84,8 @@ public class StarCoderService {
         return httpPost;
     }
 
-    public String replacementSuggestion (String prompt) {
-        // Default to returning the same text.
-        String replacement = prompt;
-
-        // TODO if no API key then stop me from getting here.
-        StarCoderSettings settings = StarCoderSettings.getInstance();
-        if(StringUtils.isEmpty(settings.getApiToken())) {
-            Notifications.Bus.notify(new Notification("StarCoder","StarCoder", "StarCoder API token is required.", NotificationType.WARNING));
-            return replacement;
-        }
-
-        HttpPost httpPost = buildApiPost(settings, prompt);
-
-        // TODO combine this with above
+    private String getApiResponse(HttpPost httpPost) {
+        String responseText = "";
         try {
             CloseableHttpClient httpClient = HttpClients.createDefault();
             HttpResponse response = httpClient.execute(httpPost);
@@ -131,7 +93,7 @@ public class StarCoderService {
             // Check the response status code
             int statusCode = response.getStatusLine().getStatusCode();
             if (statusCode != 200) {
-                return replacement;
+                return responseText;
             }
 
             Gson gson = new Gson();
@@ -142,15 +104,32 @@ public class StarCoderService {
                 JsonObject responseObject = responseArray.get(0).getAsJsonObject();
                 if(responseObject.get("generated_text")!=null) {
                     generatedText = responseObject.get("generated_text").getAsString();
-                    replacement = generatedText.replace(END_TAG, "");
+                    responseText = generatedText.replace(END_TAG, "");
                 }
             }
 
             httpClient.close();
 
-
         } catch (IOException e) {
             // TODO log exception
+        }
+        return responseText;
+    }
+
+    public String replacementSuggestion (String prompt) {
+        // Default to returning the same text.
+        String replacement = prompt;
+
+        StarCoderSettings settings = StarCoderSettings.getInstance();
+        if(StringUtils.isEmpty(settings.getApiToken())) {
+            Notifications.Bus.notify(new Notification("StarCoder","StarCoder", "StarCoder API token is required.", NotificationType.WARNING));
+            return replacement;
+        }
+
+        HttpPost httpPost = buildApiPost(settings, prompt);
+        String generatedText = getApiResponse(httpPost);
+        if(!StringUtils.isEmpty(generatedText)) {
+            replacement = generatedText;
         }
 
         return replacement;

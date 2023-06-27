@@ -1,16 +1,17 @@
 starcoder-intellij
 ======================
 
-Intellij plugin for StarCoder AI code completion via Hugging Face API.
+IntelliJ plugin for StarCoder AI code completion via Hugging Face API.
 
 More information: https://huggingface.co/bigcode/starcoder
 ![](https://huggingface.co/datasets/bigcode/admin/resolve/main/StarCoderBanner.png)
 
 ## Features:
 
-* AI code completion suggestions as you type.</li>
-* Modify API URL to switch between StarCoder models.</li>
-* Advanced parameters for model tuning.</li>
+* AI code completion suggestions as you type.
+* Prompt AI with selected text in the editor.
+* Modify API URL to switch between StarCoder models.
+* Advanced parameters for model response tuning.
 
 ## Getting Started:
 
