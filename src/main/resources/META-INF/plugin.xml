@@ -38,7 +38,7 @@
     ]]></description>
 
     <change-notes><![CDATA[
-    <p>XXX: Added manual prompt through right-click > StarCoder Prompt (hotkey CTRL+ALT+R)
+    <p>0.230627: Added manual prompt through right-click > StarCoder Prompt (hotkey CTRL+ALT+R)
     <p>0.230620: This is the initial release of the plugin.</p>
     ]]>
     </change-notes>
