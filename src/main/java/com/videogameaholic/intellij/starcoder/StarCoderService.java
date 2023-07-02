@@ -6,6 +6,9 @@ import com.google.gson.JsonObject;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectManager;
+import com.intellij.openapi.wm.WindowManager;
 import com.videogameaholic.intellij.starcoder.settings.StarCoderSettings;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpHeaders;
@@ -26,11 +29,13 @@ public class StarCoderService {
     private static final String SUFFIX_TAG = "<fim_suffix>";
     private static final String MIDDLE_TAG = "<fim_middle>";
     private static final String END_TAG = "<|endoftext|>";
+    private int statusCode = 200;
 
     public String[] getCodeCompletionHints(CharSequence editorContents, int cursorPosition) {
         StarCoderSettings settings = StarCoderSettings.getInstance();
         if(!settings.isSaytEnabled()) return null;
 
+        // TODO Notification banner?
         if(StringUtils.isEmpty(settings.getApiToken())) {
             Notifications.Bus.notify(new Notification("StarCoder","StarCoder", "StarCoder API token is required.", NotificationType.WARNING));
             return null;
@@ -50,6 +55,7 @@ public class StarCoderService {
             String[] parts = generatedText.split(MIDDLE_TAG);
             if(parts.length > 0) {
                 suggestionList = StringUtils.splitPreserveAllTokens(parts[1], "\n");
+                if(suggestionList.length == 1 && suggestionList[0].trim().length() == 0) return null;
             }
         }
         return suggestionList;
@@ -91,7 +97,14 @@ public class StarCoderService {
             HttpResponse response = httpClient.execute(httpPost);
 
             // Check the response status code
-            int statusCode = response.getStatusLine().getStatusCode();
+            int oldStatusCode = statusCode;
+            statusCode = response.getStatusLine().getStatusCode();
+            if (statusCode != oldStatusCode) {
+                // Update the widget based on the new status code
+                for (Project openProject : ProjectManager.getInstance().getOpenProjects()) {
+                    WindowManager.getInstance().getStatusBar(openProject).updateWidget(StarCoderWidget.ID);
+                }
+            }
             if (statusCode != 200) {
                 return responseText;
             }
@@ -133,5 +146,9 @@ public class StarCoderService {
         }
 
         return replacement;
+    }
+
+    public int getStatus () {
+        return statusCode;
     }
 }

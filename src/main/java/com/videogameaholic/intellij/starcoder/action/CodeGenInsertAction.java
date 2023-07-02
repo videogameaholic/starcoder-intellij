@@ -1,4 +1,4 @@
-package com.videogameaholic.intellij.starcoder;
+package com.videogameaholic.intellij.starcoder.action;
 
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
@@ -8,6 +8,7 @@ import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.actionSystem.EditorActionHandler;
 import com.intellij.openapi.editor.actionSystem.EditorWriteActionHandler;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.videogameaholic.intellij.starcoder.StarCoderWidget;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -34,7 +35,6 @@ public class CodeGenInsertAction extends EditorWriteActionHandler {
 
         String[] hints = file.getUserData(StarCoderWidget.STAR_CODER_CODE_SUGGESTION);
         if((hints == null) || (hints.length == 0)) return false;
-        if(hints[0].trim().length() == 0 && hints.length == 1) return false;
 
         StringJoiner insertTextJoiner = new StringJoiner("\n");
         for (String hint : hints) {
@@ -48,7 +48,7 @@ public class CodeGenInsertAction extends EditorWriteActionHandler {
         file.putUserData(StarCoderWidget.STAR_CODER_CODE_SUGGESTION, null);
 
         String insertText = insertTextJoiner.toString();
-        WriteCommandAction.runWriteCommandAction(editor.getProject(), () -> {
+        WriteCommandAction.runWriteCommandAction(editor.getProject(), "StarCoder Insert", null, () -> {
             editor.getDocument().insertString(lastPosition, insertText);
             editor.getCaretModel().moveToOffset(lastPosition + insertText.length());
         });

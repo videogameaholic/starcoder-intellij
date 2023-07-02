@@ -21,14 +21,16 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
 
 public class StarCoderWidget extends EditorBasedWidget
-implements StatusBarWidget.Multiframe, StatusBarWidget.TextPresentation,
+implements StatusBarWidget.Multiframe, StatusBarWidget.IconPresentation,
         CaretListener, SelectionListener, BulkAwareDocumentListener.Simple, PropertyChangeListener {
     public static final String ID = "StarCoderWidget";
 
@@ -49,14 +51,26 @@ implements StatusBarWidget.Multiframe, StatusBarWidget.TextPresentation,
         return new StarCoderWidget(getProject());
     }
 
-    @Override
-    public @NotNull @NlsContexts.Label String getText() {
-        return "</>";
-    }
+//    @Override
+//    public @NotNull @NlsContexts.Label String getText() {
+//        return "</>";
+//    }
+//
+//    @Override
+//    public float getAlignment() {
+//        return Component.CENTER_ALIGNMENT;
+//    }
+
 
     @Override
-    public float getAlignment() {
-        return Component.CENTER_ALIGNMENT;
+    public @Nullable Icon getIcon() {
+        StarCoderService starCoder = ApplicationManager.getApplication().getService(StarCoderService.class);
+        StarCoderStatus status = StarCoderStatus.getStatusByCode(starCoder.getStatus());
+        if(status == StarCoderStatus.OK) {
+            return StarCoderSettings.getInstance().isSaytEnabled() ? StarCoderIcons.WidgetEnabled : StarCoderIcons.WidgetDisabled;
+        } else {
+            return StarCoderIcons.WidgetError;
+        }
     }
 
     @Override
@@ -66,7 +80,36 @@ implements StatusBarWidget.Multiframe, StatusBarWidget.TextPresentation,
 
     @Override
     public @Nullable @NlsContexts.Tooltip String getTooltipText() {
-        return StarCoderSettings.getInstance().isSaytEnabled() ? "StarCoder enabled (Click to disable)" : "StarCoder disabled (Click to enable)";
+        StringBuilder toolTipText = new StringBuilder("StarCoder");
+        if(StarCoderSettings.getInstance().isSaytEnabled()) {
+            toolTipText.append(" enabled");
+        } else {
+            toolTipText.append(" disabled");
+        }
+
+        StarCoderService starCoder = ApplicationManager.getApplication().getService(StarCoderService.class);
+        int statusCode = starCoder.getStatus();
+        StarCoderStatus status = StarCoderStatus.getStatusByCode(statusCode);
+        switch (status) {
+            case OK:
+                if(StarCoderSettings.getInstance().isSaytEnabled()) {
+                    toolTipText.append(" (Click to disable)");
+                } else {
+                    toolTipText.append(" (Click to enable)");
+                }
+                break;
+            case UNKNOWN:
+                toolTipText.append(" (http error ");
+                toolTipText.append(statusCode);
+                toolTipText.append(")");
+                break;
+            default:
+                toolTipText.append(" (");
+                toolTipText.append(status.getDisplayValue());
+                toolTipText.append(")");
+        }
+
+        return toolTipText.toString();
     }
 
     @Override
@@ -83,6 +126,7 @@ implements StatusBarWidget.Multiframe, StatusBarWidget.TextPresentation,
     @Override
     public void install(@NotNull StatusBar statusBar) {
         super.install(statusBar);
+        //TODO MergingUpdateQueue?
         EditorEventMulticaster multicaster = EditorFactory.getInstance().getEventMulticaster();
         multicaster.addCaretListener(this, this);
         multicaster.addSelectionListener(this, this);
@@ -143,12 +187,15 @@ implements StatusBarWidget.Multiframe, StatusBarWidget.TextPresentation,
     }
 
     @Override
-    public void afterDocumentChange (Document document) {
-        updateInlayHints(getFocusOwnerEditor());
-        EditorFactory.getInstance().editors(document)
-                .filter(this::isFocusedEditor)
-                .findFirst()
-                .ifPresent(this::updateInlayHints);
+    public void afterDocumentChange (@NotNull Document document) {
+        if(ApplicationManager.getApplication().isDispatchThread()) {
+            EditorFactory.getInstance().editors(document)
+                    .filter(this::isFocusedEditor)
+                    .findFirst()
+                    .ifPresent(this::updateInlayHints);
+        } else {
+            System.out.println("afterDocumentChange outside of dispatch thread");
+        }
     }
 
     private void updateInlayHints(Editor focusedEditor) {
@@ -176,6 +223,8 @@ implements StatusBarWidget.Multiframe, StatusBarWidget.TextPresentation,
         int lastPosition = (starCoderPos==null) ? 0 : starCoderPos;
         int currentPosition = focusedEditor.getCaretModel().getOffset();
 
+//        System.out.println("current position: "+currentPosition);
+
         // If cursor hasn't moved, don't do anything.
         if (lastPosition == currentPosition) return;
 
@@ -189,18 +238,27 @@ implements StatusBarWidget.Multiframe, StatusBarWidget.TextPresentation,
                 if (inlineHint.startsWith(modifiedText)) {
                     // They typed the same thing that we suggested.
                     // Update the hint rather than calling the API to suggest a new one.
-                    // We only need to modify the inline hint and any block hints will remain unchanged.
-                    inlayModel.getInlineElementsInRange(lastPosition, currentPosition).forEach(this::disposeInlayHints);
                     inlineHint = inlineHint.substring(modifiedText.length());
                     if(inlineHint.length()>0) {
+                        // We only need to modify the inline hint and any block hints will remain unchanged.
+                        inlayModel.getInlineElementsInRange(lastPosition, currentPosition).forEach(this::disposeInlayHints);
                         inlayModel.addInlineElement(currentPosition, true, new CodeGenHintRenderer(inlineHint));
-                    }
+                        existingHints[0] = inlineHint;
 
-                    // Update the UserData
-                    existingHints[0] = inlineHint;
-                    file.putUserData(STAR_CODER_CODE_SUGGESTION, existingHints);
-                    file.putUserData(STAR_CODER_POSITION, currentPosition);
-                    return;
+                        // Update the UserData
+                        file.putUserData(STAR_CODER_CODE_SUGGESTION, existingHints);
+                        file.putUserData(STAR_CODER_POSITION, currentPosition);
+                        return;
+                    } else if (existingHints.length > 1) {
+                        // If the first line has been completely inserted, and there are more lines, move them up.
+                        existingHints = Arrays.copyOfRange(existingHints, 1, existingHints.length);
+                        addCodeSuggestion(focusedEditor, file, currentPosition, existingHints);
+                        return;
+                    } else {
+                        // We ran out of inline hint and there are no block hints,
+                        // So clear the hints now and we'll call the API below.
+                        file.putUserData(STAR_CODER_CODE_SUGGESTION, null);
+                    }
                 }
             }
         }
@@ -214,11 +272,12 @@ implements StatusBarWidget.Multiframe, StatusBarWidget.TextPresentation,
 
         StarCoderService starCoder = ApplicationManager.getApplication().getService(StarCoderService.class);
         CharSequence editorContents = focusedEditor.getDocument().getCharsSequence();
+        //TODO MergingUpdateQueue?
         CompletableFuture<String[]> future = CompletableFuture.supplyAsync(() -> starCoder.getCodeCompletionHints(editorContents, currentPosition));
         future.thenAccept(hintList -> this.addCodeSuggestion(focusedEditor, file, currentPosition, hintList));
     }
 
-    private void disposeInlayHints(Inlay inlay) {
+    private void disposeInlayHints(Inlay<?> inlay) {
         if(inlay.getRenderer() instanceof CodeGenHintRenderer) {
             inlay.dispose();
         }

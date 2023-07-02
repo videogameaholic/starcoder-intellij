@@ -59,18 +59,24 @@
 
         <statusBarWidgetFactory id="StarCoderFactory"
                                 implementation="com.videogameaholic.intellij.starcoder.StarCoderWidgetFactory"
-                                order="before positionWidget"/>
+                                order="after positionWidget"/>
 
-        <editorActionHandler action="EditorTab" implementationClass="com.videogameaholic.intellij.starcoder.CodeGenInsertAction"/>
+        <editorActionHandler action="EditorTab" implementationClass="com.videogameaholic.intellij.starcoder.action.CodeGenInsertAction"/>
 
         <notificationGroup id="StarCoder" displayType="STICKY_BALLOON" isLogByDefault="true"/>
     </extensions>
     <actions>
-        <action class="com.videogameaholic.intellij.starcoder.CodeGenPromptAction"
-                id="com.videogameaholic.intellij.starcoder.CodeGenPromptAction"
-                text="StarCoder Prompt">
+        <action class="com.videogameaholic.intellij.starcoder.action.CodeGenPromptAction"
+                id="com.videogameaholic.intellij.starcoder.action.CodeGenPromptAction"
+                text="StarCoder Prompt"
+                icon="com.videogameaholic.intellij.starcoder.StarCoderIcons.Action">
             <add-to-group group-id="EditorPopupMenu"/>
             <keyboard-shortcut first-keystroke="control alt R" keymap="$default"/>
+        </action>
+
+        <action class="com.videogameaholic.intellij.starcoder.action.CodeGenInsertLineAction"
+                id="com.videogameaholic.intellij.starcoder.action.CodeGenInsertLineAction">
+            <keyboard-shortcut first-keystroke="control alt V" keymap="$default"/>
         </action>
     </actions>
 </idea-plugin>
