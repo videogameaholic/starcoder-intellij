@@ -56,6 +56,13 @@ public class StarCoderService {
             if(parts.length > 0) {
                 suggestionList = StringUtils.splitPreserveAllTokens(parts[1], "\n");
                 if(suggestionList.length == 1 && suggestionList[0].trim().length() == 0) return null;
+                if(suggestionList.length > 1) {
+                    for (int i = 0; i < suggestionList.length; i++) {
+                        StringBuilder sb = new StringBuilder(suggestionList[i]);
+                        sb.append("\n");
+                        suggestionList[i] = sb.toString();
+                    }
+                }
             }
         }
         return suggestionList;

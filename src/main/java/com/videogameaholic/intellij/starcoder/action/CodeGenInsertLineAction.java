@@ -25,10 +25,7 @@ public class CodeGenInsertLineAction extends AnAction {
         int lastPosition = (starCoderPos==null) ? 0 : starCoderPos;
         if((caret == null) || (caret.getOffset() != lastPosition)) return;
 
-        // TODO this technically works but it feels like a bug
-        // It should be hints[0]+ rather than +=, but it currently matches in the widget.
-        final String insertText = (hints.length > 1) ? hints[0] += "\n" : hints[0];
-
+        final String insertText = hints[0];
         WriteCommandAction.runWriteCommandAction(editor.getProject(), "StarCoder Insert", null, () -> {
             editor.getDocument().insertString(lastPosition, insertText);
             editor.getCaretModel().moveToOffset(lastPosition + insertText.length());

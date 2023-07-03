@@ -51,17 +51,6 @@ implements StatusBarWidget.Multiframe, StatusBarWidget.IconPresentation,
         return new StarCoderWidget(getProject());
     }
 
-//    @Override
-//    public @NotNull @NlsContexts.Label String getText() {
-//        return "</>";
-//    }
-//
-//    @Override
-//    public float getAlignment() {
-//        return Component.CENTER_ALIGNMENT;
-//    }
-
-
     @Override
     public @Nullable Icon getIcon() {
         StarCoderService starCoder = ApplicationManager.getApplication().getService(StarCoderService.class);
@@ -235,8 +224,15 @@ implements StatusBarWidget.Multiframe, StatusBarWidget.IconPresentation,
             if (existingHints != null && existingHints.length > 0) {
                 String inlineHint = existingHints[0];
                 String modifiedText = focusedEditor.getDocument().getCharsSequence().subSequence(lastPosition, currentPosition).toString();
+                if(modifiedText.startsWith("\n")) {
+                    // If the user typed Enter, the editor may have auto-spaced for alignment.
+                    modifiedText = modifiedText.replace(" ","");
+                    // TODO Count the spaces and remove from the next block hint, or just remove
+                    // leading spaces from the block hint before moving up?
+                    // example: set a boolean here and do existingHints[1] = existingHints[1].stripLeading()
+                }
+                // See if they typed the same thing that we suggested.
                 if (inlineHint.startsWith(modifiedText)) {
-                    // They typed the same thing that we suggested.
                     // Update the hint rather than calling the API to suggest a new one.
                     inlineHint = inlineHint.substring(modifiedText.length());
                     if(inlineHint.length()>0) {
@@ -256,7 +252,7 @@ implements StatusBarWidget.Multiframe, StatusBarWidget.IconPresentation,
                         return;
                     } else {
                         // We ran out of inline hint and there are no block hints,
-                        // So clear the hints now and we'll call the API below.
+                        // So clear the hints now, and we'll call the API below.
                         file.putUserData(STAR_CODER_CODE_SUGGESTION, null);
                     }
                 }

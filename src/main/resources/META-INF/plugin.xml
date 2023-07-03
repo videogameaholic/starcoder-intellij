@@ -71,12 +71,13 @@
                 text="StarCoder Prompt"
                 icon="com.videogameaholic.intellij.starcoder.StarCoderIcons.Action">
             <add-to-group group-id="EditorPopupMenu"/>
-            <keyboard-shortcut first-keystroke="control alt R" keymap="$default"/>
+            <keyboard-shortcut first-keystroke="alt P" keymap="$default"/>
         </action>
 
         <action class="com.videogameaholic.intellij.starcoder.action.CodeGenInsertLineAction"
-                id="com.videogameaholic.intellij.starcoder.action.CodeGenInsertLineAction">
-            <keyboard-shortcut first-keystroke="control alt V" keymap="$default"/>
+                id="com.videogameaholic.intellij.starcoder.action.CodeGenInsertLineAction"
+                text="StarCoder Insert Single Line">
+            <keyboard-shortcut first-keystroke="alt S" keymap="$default"/>
         </action>
     </actions>
 </idea-plugin>
