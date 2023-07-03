@@ -182,8 +182,6 @@ implements StatusBarWidget.Multiframe, StatusBarWidget.IconPresentation,
                     .filter(this::isFocusedEditor)
                     .findFirst()
                     .ifPresent(this::updateInlayHints);
-        } else {
-            System.out.println("afterDocumentChange outside of dispatch thread");
         }
     }
 
@@ -212,8 +210,6 @@ implements StatusBarWidget.Multiframe, StatusBarWidget.IconPresentation,
         int lastPosition = (starCoderPos==null) ? 0 : starCoderPos;
         int currentPosition = focusedEditor.getCaretModel().getOffset();
 
-//        System.out.println("current position: "+currentPosition);
-
         // If cursor hasn't moved, don't do anything.
         if (lastPosition == currentPosition) return;
 
@@ -237,7 +233,7 @@ implements StatusBarWidget.Multiframe, StatusBarWidget.IconPresentation,
                     inlineHint = inlineHint.substring(modifiedText.length());
                     if(inlineHint.length()>0) {
                         // We only need to modify the inline hint and any block hints will remain unchanged.
-                        inlayModel.getInlineElementsInRange(lastPosition, currentPosition).forEach(this::disposeInlayHints);
+                        inlayModel.getInlineElementsInRange(0, focusedEditor.getDocument().getTextLength()).forEach(this::disposeInlayHints);
                         inlayModel.addInlineElement(currentPosition, true, new CodeGenHintRenderer(inlineHint));
                         existingHints[0] = inlineHint;
 

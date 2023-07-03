@@ -23,7 +23,7 @@
         <li>AI code completion suggestions as you type.</li>
         <li>Prompt AI with selected text in the editor.</li>
         <li>Modify API URL to switch between StarCoder models.</li>
-        <li>Advanced parameters for model tuning.</li>
+        <li>Advanced parameters for model response tuning.</li>
     </ul>
     </p>
     <br/>
@@ -38,8 +38,26 @@
     ]]></description>
 
     <change-notes><![CDATA[
-    <p>0.230627: Added manual prompt through right-click > StarCoder Prompt (hotkey CTRL+ALT+R)
-    <p>0.230620: This is the initial release of the plugin.</p>
+    <p>
+    <ul>
+        <li>XXX</li>
+        <ul>
+            <li>Added insert single line action (hotkey Alt+S)</li>
+            <li>Added hotkey for insert all suggestions action (Alt+A)</li>
+            <li>Changed prompt hotkey to Alt+P</li>
+            <li>Added icons for widget</li>
+            <li>Widget icon turns red when service encounters error</li>
+        </ul>
+        <li>0.230627</li>
+        <ul>
+            <li>Added manual prompt through right-click > StarCoder Prompt</li>
+        </ul>
+        <li>0.230620</li>
+        <ul>
+            <li>This is the initial release of the plugin.</li>
+        </ul>
+    </ul>
+    </p>
     ]]>
     </change-notes>
 
@@ -61,23 +79,31 @@
                                 implementation="com.videogameaholic.intellij.starcoder.StarCoderWidgetFactory"
                                 order="after positionWidget"/>
 
-        <editorActionHandler action="EditorTab" implementationClass="com.videogameaholic.intellij.starcoder.action.CodeGenInsertAction"/>
+        <editorActionHandler action="EditorTab" implementationClass="com.videogameaholic.intellij.starcoder.action.CodeGenTabAction"/>
 
         <notificationGroup id="StarCoder" displayType="STICKY_BALLOON" isLogByDefault="true"/>
     </extensions>
     <actions>
-        <action class="com.videogameaholic.intellij.starcoder.action.CodeGenPromptAction"
-                id="com.videogameaholic.intellij.starcoder.action.CodeGenPromptAction"
-                text="StarCoder Prompt"
-                icon="com.videogameaholic.intellij.starcoder.StarCoderIcons.Action">
+        <group id="StarCoderActions" popup="true" text="StarCoder" description="StarCoder"
+               icon="com.videogameaholic.intellij.starcoder.StarCoderIcons.Action">
             <add-to-group group-id="EditorPopupMenu"/>
-            <keyboard-shortcut first-keystroke="alt P" keymap="$default"/>
-        </action>
+            <action class="com.videogameaholic.intellij.starcoder.action.CodeGenPromptAction"
+                    id="com.videogameaholic.intellij.starcoder.action.CodeGenPromptAction"
+                    text="Prompt with Selection">
+                <keyboard-shortcut first-keystroke="alt P" keymap="$default"/>
+            </action>
 
-        <action class="com.videogameaholic.intellij.starcoder.action.CodeGenInsertLineAction"
-                id="com.videogameaholic.intellij.starcoder.action.CodeGenInsertLineAction"
-                text="StarCoder Insert Single Line">
-            <keyboard-shortcut first-keystroke="alt S" keymap="$default"/>
-        </action>
+            <action class="com.videogameaholic.intellij.starcoder.action.CodeGenInsertAllAction"
+                    id="com.videogameaholic.intellij.starcoder.action.CodeGenInsertAllAction"
+                    text="Insert All Suggestions">
+                <keyboard-shortcut first-keystroke="alt A" keymap="$default"/>
+            </action>
+
+            <action class="com.videogameaholic.intellij.starcoder.action.CodeGenInsertLineAction"
+                    id="com.videogameaholic.intellij.starcoder.action.CodeGenInsertLineAction"
+                    text="Insert Single Line">
+                <keyboard-shortcut first-keystroke="alt S" keymap="$default"/>
+            </action>
+        </group>
     </actions>
 </idea-plugin>

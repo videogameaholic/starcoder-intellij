@@ -13,24 +13,12 @@ import org.jetbrains.annotations.NotNull;
 public class CodeGenInsertLineAction extends AnAction {
     @Override
     public void actionPerformed(@NotNull AnActionEvent e) {
-        VirtualFile file = e.getData(CommonDataKeys.VIRTUAL_FILE);
         Editor editor = e.getData(CommonDataKeys.EDITOR);
-        if (file == null || editor == null) return;
-
-        String[] hints = file.getUserData(StarCoderWidget.STAR_CODER_CODE_SUGGESTION);
-        if((hints == null) || (hints.length == 0)) return;
-
         Caret caret = e.getData(CommonDataKeys.CARET);
-        Integer starCoderPos = file.getUserData(StarCoderWidget.STAR_CODER_POSITION);
-        int lastPosition = (starCoderPos==null) ? 0 : starCoderPos;
-        if((caret == null) || (caret.getOffset() != lastPosition)) return;
-
-        final String insertText = hints[0];
-        WriteCommandAction.runWriteCommandAction(editor.getProject(), "StarCoder Insert", null, () -> {
-            editor.getDocument().insertString(lastPosition, insertText);
-            editor.getCaretModel().moveToOffset(lastPosition + insertText.length());
-        });
-
+        VirtualFile file = e.getData(CommonDataKeys.VIRTUAL_FILE);
+        if(!performAction(editor, caret, file)) {
+            // TODO log?
+        }
     }
 
     @Override
@@ -41,5 +29,23 @@ public class CodeGenInsertLineAction extends AnAction {
 
         String[] hints = file.getUserData(StarCoderWidget.STAR_CODER_CODE_SUGGESTION);
         e.getPresentation().setEnabledAndVisible(hints != null && hints.length > 0);
+    }
+
+    public static boolean performAction(Editor editor, Caret caret, VirtualFile file) {
+        if (file == null || editor == null) return false;
+
+        String[] hints = file.getUserData(StarCoderWidget.STAR_CODER_CODE_SUGGESTION);
+        if((hints == null) || (hints.length == 0)) return false;
+
+        Integer starCoderPos = file.getUserData(StarCoderWidget.STAR_CODER_POSITION);
+        int lastPosition = (starCoderPos==null) ? 0 : starCoderPos;
+        if((caret == null) || (caret.getOffset() != lastPosition)) return false;
+
+        final String insertText = hints[0];
+        WriteCommandAction.runWriteCommandAction(editor.getProject(), "StarCoder Insert", null, () -> {
+            editor.getDocument().insertString(lastPosition, insertText);
+            editor.getCaretModel().moveToOffset(lastPosition + insertText.length());
+        });
+        return true;
     }
 }
