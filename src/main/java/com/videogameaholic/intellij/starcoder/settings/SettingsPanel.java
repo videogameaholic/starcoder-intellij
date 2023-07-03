@@ -1,5 +1,7 @@
 package com.videogameaholic.intellij.starcoder.settings;
 
+import com.intellij.ui.EnumComboBoxModel;
+
 import javax.swing.*;
 
 public class SettingsPanel {
@@ -14,6 +16,19 @@ public class SettingsPanel {
     private JTextField topPTextField;
     private JTextField repetitionTextField;
     private JCheckBox enableSAYTCheckBox;
+    private JPanel Settings;
+    private JPanel ParamOuter;
+    private JPanel TabActionPanel;
+    private JComboBox<TabActionOption> tabActionComboBox;
+    private JLabel tabActionLabel;
+
+    public SettingsPanel() {
+        tabActionComboBox.setModel(new EnumComboBoxModel<>(TabActionOption.class));
+        enableSAYTCheckBox.addActionListener(e -> {
+            tabActionLabel.setEnabled(enableSAYTCheckBox.isSelected());
+            tabActionComboBox.setEnabled(enableSAYTCheckBox.isSelected());
+        });
+    }
 
     public JComponent getPanel() {
         return panel;
@@ -73,5 +88,13 @@ public class SettingsPanel {
 
     public void setEnableSAYTCheckBox(boolean enableSAYT) {
         enableSAYTCheckBox.setSelected(enableSAYT);
+    }
+
+    public TabActionOption getTabActionOption() {
+        return (TabActionOption) tabActionComboBox.getModel().getSelectedItem();
+    }
+
+    public void setTabActionOption(TabActionOption option) {
+        tabActionComboBox.getModel().setSelectedItem(option);
     }
 }

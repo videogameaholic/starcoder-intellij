@@ -40,11 +40,12 @@
     <change-notes><![CDATA[
     <p>
     <ul>
-        <li>XXX</li>
+        <li>0.230703</li>
         <ul>
             <li>Added insert single line action (hotkey Alt+S)</li>
             <li>Added hotkey for insert all suggestions action (Alt+A)</li>
             <li>Changed prompt hotkey to Alt+P</li>
+            <li>Added setting to choose action called when pressing Tab</li>
             <li>Added icons for widget</li>
             <li>Widget icon turns red when service encounters error</li>
         </ul>

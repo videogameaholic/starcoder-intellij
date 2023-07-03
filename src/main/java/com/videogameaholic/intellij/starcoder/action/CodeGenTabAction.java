@@ -7,6 +7,8 @@ import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.actionSystem.EditorActionHandler;
 import com.intellij.openapi.editor.actionSystem.EditorWriteActionHandler;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.videogameaholic.intellij.starcoder.settings.StarCoderSettings;
+import com.videogameaholic.intellij.starcoder.settings.TabActionOption;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -25,9 +27,16 @@ public class CodeGenTabAction  extends EditorWriteActionHandler {
     }
 
     private boolean insertCodeSuggestion(Editor editor, Caret caret, DataContext dataContext) {
-        // TODO Check settings to determine tab action (single or all)
         VirtualFile file = dataContext.getData(CommonDataKeys.VIRTUAL_FILE);
+        TabActionOption tabActionOption = StarCoderSettings.getInstance().getTabActionOption();
 
-        return CodeGenInsertAllAction.performAction(editor, caret, file);
+        switch (tabActionOption) {
+            case ALL:
+                return CodeGenInsertAllAction.performAction(editor, caret, file);
+            case SINGLE:
+                return CodeGenInsertLineAction.performAction(editor, caret, file);
+            default:
+                return false;
+        }
     }
 }

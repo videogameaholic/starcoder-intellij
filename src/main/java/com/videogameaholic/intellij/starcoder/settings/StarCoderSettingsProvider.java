@@ -40,6 +40,7 @@ public class StarCoderSettingsProvider implements EditorOptionsProvider {
 
         return !savedSettings.getApiURL().equals(settingsPanel.getApiUrl())
                 || !savedSettings.getApiToken().equals(settingsPanel.getApiToken())
+                || savedSettings.getTabActionOption() != settingsPanel.getTabActionOption()
                 || savedSettings.isSaytEnabled() != settingsPanel.getEnableSAYTCheckBox()
                 || savedSettings.getTemperature() != Float.parseFloat(settingsPanel.getTemperature())
                 || savedSettings.getMaxNewTokens() != Integer.parseInt(settingsPanel.getMaxNewTokens())
@@ -54,6 +55,7 @@ public class StarCoderSettingsProvider implements EditorOptionsProvider {
         savedSettings.setApiURL(settingsPanel.getApiUrl());
         savedSettings.setApiToken(settingsPanel.getApiToken());
         savedSettings.setSaytEnabled(settingsPanel.getEnableSAYTCheckBox());
+        savedSettings.setTabActionOption(settingsPanel.getTabActionOption());
         savedSettings.setTemperature(settingsPanel.getTemperature());
         savedSettings.setMaxNewTokens(settingsPanel.getMaxNewTokens());
         savedSettings.setTopP(settingsPanel.getTopP());
@@ -72,6 +74,7 @@ public class StarCoderSettingsProvider implements EditorOptionsProvider {
         settingsPanel.setApiUrl(savedSettings.getApiURL());
         settingsPanel.setApiToken(savedSettings.getApiToken());
         settingsPanel.setEnableSAYTCheckBox(savedSettings.isSaytEnabled());
+        settingsPanel.setTabActionOption(savedSettings.getTabActionOption());
         settingsPanel.setTemperature(String.valueOf(savedSettings.getTemperature()));
         settingsPanel.setMaxNewTokens(String.valueOf(savedSettings.getMaxNewTokens()));
         settingsPanel.setTopP(String.valueOf(savedSettings.getTopP()));

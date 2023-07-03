@@ -17,6 +17,7 @@ public class StarCoderSettings implements PersistentStateComponent<Element> {
     private static final String API_URL_TAG = "API_URL";
     private static final CredentialAttributes CREDENTIAL_ATTRIBUTES = new CredentialAttributes(StarCoderSettings.class.getName(), "STARCODER_BEARER_TOKEN");
     private static final String SAYT_TAG = "SAYT_ENABLED";
+    private static final String TAB_ACTION_TAG = "TAB_ACTION";
     private static final String TEMPERATURE_TAG = "TEMPERATURE";
     private static final String MAX_NEW_TOKENS_TAG = "MAX_NEW_TOKENS";
     private static final String TOP_P_TAG = "TOP_P";
@@ -24,6 +25,7 @@ public class StarCoderSettings implements PersistentStateComponent<Element> {
 
     private boolean saytEnabled = true;
     private String apiURL = "https://api-inference.huggingface.co/models/bigcode/starcoder";
+    private TabActionOption tabActionOption = TabActionOption.ALL;
     private float temperature = 0.2f;
     private int maxNewTokens = 256;
     private float topP = 0.9f;
@@ -36,6 +38,7 @@ public class StarCoderSettings implements PersistentStateComponent<Element> {
         Element state = new Element(SETTINGS_TAG);
         state.setAttribute(API_URL_TAG, getApiURL());
         state.setAttribute(SAYT_TAG, Boolean.toString(isSaytEnabled()));
+        state.setAttribute(TAB_ACTION_TAG, getTabActionOption().name());
         state.setAttribute(TEMPERATURE_TAG, String.valueOf(getTemperature()));
         state.setAttribute(MAX_NEW_TOKENS_TAG, String.valueOf(getMaxNewTokens()));
         state.setAttribute(TOP_P_TAG, String.valueOf(getTopP()));
@@ -50,6 +53,9 @@ public class StarCoderSettings implements PersistentStateComponent<Element> {
         }
         if(state.getAttributeValue(SAYT_TAG)!=null){
             setSaytEnabled(Boolean.parseBoolean(state.getAttributeValue(SAYT_TAG)));
+        }
+        if(state.getAttributeValue(TAB_ACTION_TAG)!=null){
+            setTabActionOption(TabActionOption.valueOf(state.getAttributeValue(TAB_ACTION_TAG)));
         }
         if(state.getAttributeValue(TEMPERATURE_TAG)!=null){
             setTemperature(state.getAttributeValue(TEMPERATURE_TAG));
@@ -136,5 +142,13 @@ public class StarCoderSettings implements PersistentStateComponent<Element> {
 
     public void setRepetitionPenalty(String repetitionPenalty) {
         this.repetitionPenalty = Float.parseFloat(repetitionPenalty);
+    }
+
+    public TabActionOption getTabActionOption() {
+        return tabActionOption;
+    }
+
+    public void setTabActionOption(TabActionOption tabActionOption) {
+        this.tabActionOption = tabActionOption;
     }
 }
