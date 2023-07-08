@@ -16,6 +16,8 @@ import com.intellij.openapi.wm.StatusBar;
 import com.intellij.openapi.wm.StatusBarWidget;
 import com.intellij.openapi.wm.impl.status.EditorBasedWidget;
 import com.intellij.util.Consumer;
+import com.intellij.util.ui.update.MergingUpdateQueue;
+import com.intellij.util.ui.update.Update;
 import com.videogameaholic.intellij.starcoder.settings.StarCoderSettings;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -27,7 +29,6 @@ import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.Arrays;
-import java.util.concurrent.CompletableFuture;
 
 public class StarCoderWidget extends EditorBasedWidget
 implements StatusBarWidget.Multiframe, StatusBarWidget.IconPresentation,
@@ -36,6 +37,8 @@ implements StatusBarWidget.Multiframe, StatusBarWidget.IconPresentation,
 
     public static final Key<String[]> STAR_CODER_CODE_SUGGESTION = new Key<>("StarCoder Code Suggestion");
     public static final Key<Integer> STAR_CODER_POSITION = new Key<>("StarCoder Position");
+
+    private MergingUpdateQueue serviceQueue;
 
     protected StarCoderWidget(@NotNull Project project) {
         super(project);
@@ -116,6 +119,7 @@ implements StatusBarWidget.Multiframe, StatusBarWidget.IconPresentation,
     public void install(@NotNull StatusBar statusBar) {
         super.install(statusBar);
         //TODO MergingUpdateQueue?
+        serviceQueue = new MergingUpdateQueue("StarCoderServiceQueue",1000,true,null,this);
         EditorEventMulticaster multicaster = EditorFactory.getInstance().getEventMulticaster();
         multicaster.addCaretListener(this, this);
         multicaster.addSelectionListener(this, this);
@@ -264,9 +268,14 @@ implements StatusBarWidget.Multiframe, StatusBarWidget.IconPresentation,
 
         StarCoderService starCoder = ApplicationManager.getApplication().getService(StarCoderService.class);
         CharSequence editorContents = focusedEditor.getDocument().getCharsSequence();
-        //TODO MergingUpdateQueue?
-        CompletableFuture<String[]> future = CompletableFuture.supplyAsync(() -> starCoder.getCodeCompletionHints(editorContents, currentPosition));
-        future.thenAccept(hintList -> this.addCodeSuggestion(focusedEditor, file, currentPosition, hintList));
+        System.out.println("Queued update: "+currentPosition+" for "+file.getName());
+        // TODO this does reduce the number of API calls but introduces a noticeable UI lag.
+        serviceQueue.queue(Update.create(focusedEditor,() -> {
+            String[] hintList = starCoder.getCodeCompletionHints(editorContents, currentPosition);
+            this.addCodeSuggestion(focusedEditor, file, currentPosition, hintList);
+        }));
+//        CompletableFuture<String[]> future = CompletableFuture.supplyAsync(() -> starCoder.getCodeCompletionHints(editorContents, currentPosition));
+//        future.thenAccept(hintList -> this.addCodeSuggestion(focusedEditor, file, currentPosition, hintList));
     }
 
     private void disposeInlayHints(Inlay<?> inlay) {
@@ -297,6 +306,8 @@ implements StatusBarWidget.Multiframe, StatusBarWidget.IconPresentation,
                     inlayModel.addBlockElement(suggestionPosition, false, false, 0, new CodeGenHintRenderer(hintList[i]));
                 }
             }
+
+            System.out.println("Completed update: "+suggestionPosition+" for "+file.getName());
         });
     }
 }

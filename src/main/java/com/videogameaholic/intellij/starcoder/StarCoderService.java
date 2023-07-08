@@ -49,11 +49,12 @@ public class StarCoderService {
         String starCoderPrompt = generateFIMPrompt(prefix, suffix);
 
         HttpPost httpPost = buildApiPost(settings, starCoderPrompt);
+        System.out.println("Calling API: "+cursorPosition);
         String generatedText = getApiResponse(httpPost);
         String[] suggestionList = null;
         if(generatedText.contains(MIDDLE_TAG)) {
             String[] parts = generatedText.split(MIDDLE_TAG);
-            if(parts.length > 0) {
+            if(parts.length > 1) {
                 suggestionList = StringUtils.splitPreserveAllTokens(parts[1], "\n");
                 if(suggestionList.length == 1 && suggestionList[0].trim().length() == 0) return null;
                 if(suggestionList.length > 1) {
