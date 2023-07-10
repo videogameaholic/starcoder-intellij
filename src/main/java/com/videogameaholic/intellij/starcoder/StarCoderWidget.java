@@ -118,8 +118,9 @@ implements StatusBarWidget.Multiframe, StatusBarWidget.IconPresentation,
     @Override
     public void install(@NotNull StatusBar statusBar) {
         super.install(statusBar);
-        //TODO MergingUpdateQueue?
-        serviceQueue = new MergingUpdateQueue("StarCoderServiceQueue",1000,true,null,this);
+        serviceQueue = new MergingUpdateQueue("StarCoderServiceQueue",1000,true,
+                null,this, null, false);
+        serviceQueue.setRestartTimerOnAdd(true);
         EditorEventMulticaster multicaster = EditorFactory.getInstance().getEventMulticaster();
         multicaster.addCaretListener(this, this);
         multicaster.addSelectionListener(this, this);
@@ -269,13 +270,11 @@ implements StatusBarWidget.Multiframe, StatusBarWidget.IconPresentation,
         StarCoderService starCoder = ApplicationManager.getApplication().getService(StarCoderService.class);
         CharSequence editorContents = focusedEditor.getDocument().getCharsSequence();
         System.out.println("Queued update: "+currentPosition+" for "+file.getName());
-        // TODO this does reduce the number of API calls but introduces a noticeable UI lag.
+
         serviceQueue.queue(Update.create(focusedEditor,() -> {
             String[] hintList = starCoder.getCodeCompletionHints(editorContents, currentPosition);
             this.addCodeSuggestion(focusedEditor, file, currentPosition, hintList);
         }));
-//        CompletableFuture<String[]> future = CompletableFuture.supplyAsync(() -> starCoder.getCodeCompletionHints(editorContents, currentPosition));
-//        future.thenAccept(hintList -> this.addCodeSuggestion(focusedEditor, file, currentPosition, hintList));
     }
 
     private void disposeInlayHints(Inlay<?> inlay) {
