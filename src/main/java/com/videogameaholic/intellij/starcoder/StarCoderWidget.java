@@ -1,8 +1,12 @@
 package com.videogameaholic.intellij.starcoder;
 
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.openapi.editor.*;
+import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.editor.EditorFactory;
+import com.intellij.openapi.editor.InlayModel;
 import com.intellij.openapi.editor.event.*;
 import com.intellij.openapi.editor.impl.EditorComponentImpl;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
@@ -205,8 +209,8 @@ implements StatusBarWidget.Multiframe, StatusBarWidget.IconPresentation,
                 file.putUserData(STAR_CODER_POSITION, focusedEditor.getCaretModel().getOffset());
 
                 InlayModel inlayModel = focusedEditor.getInlayModel();
-                inlayModel.getInlineElementsInRange(0, focusedEditor.getDocument().getTextLength()).forEach(this::disposeInlayHints);
-                inlayModel.getBlockElementsInRange(0, focusedEditor.getDocument().getTextLength()).forEach(this::disposeInlayHints);
+                inlayModel.getInlineElementsInRange(0, focusedEditor.getDocument().getTextLength(), CodeGenHintRenderer.class).forEach(Disposable::dispose);
+                inlayModel.getBlockElementsInRange(0, focusedEditor.getDocument().getTextLength(), CodeGenHintRenderer.class).forEach(Disposable::dispose);
             }
             return;
         }
@@ -231,6 +235,8 @@ implements StatusBarWidget.Multiframe, StatusBarWidget.IconPresentation,
                     // TODO Count the spaces and remove from the next block hint, or just remove
                     // leading spaces from the block hint before moving up?
                     // example: set a boolean here and do existingHints[1] = existingHints[1].stripLeading()
+                    // The problem is that the spaces are split in the update, some spaces are included after the carriage return,
+                    // (in the caret position update) but then after document change has more spaces in it.
                 }
                 // See if they typed the same thing that we suggested.
                 if (inlineHint.startsWith(modifiedText)) {
@@ -238,7 +244,7 @@ implements StatusBarWidget.Multiframe, StatusBarWidget.IconPresentation,
                     inlineHint = inlineHint.substring(modifiedText.length());
                     if(inlineHint.length()>0) {
                         // We only need to modify the inline hint and any block hints will remain unchanged.
-                        inlayModel.getInlineElementsInRange(0, focusedEditor.getDocument().getTextLength()).forEach(this::disposeInlayHints);
+                        inlayModel.getInlineElementsInRange(0, focusedEditor.getDocument().getTextLength(), CodeGenHintRenderer.class).forEach(Disposable::dispose);
                         inlayModel.addInlineElement(currentPosition, true, new CodeGenHintRenderer(inlineHint));
                         existingHints[0] = inlineHint;
 
@@ -261,8 +267,8 @@ implements StatusBarWidget.Multiframe, StatusBarWidget.IconPresentation,
         }
 
         // If we made it through all that, clear all hints and call the API.
-        inlayModel.getInlineElementsInRange(0, focusedEditor.getDocument().getTextLength()).forEach(this::disposeInlayHints);
-        inlayModel.getBlockElementsInRange(0, focusedEditor.getDocument().getTextLength()).forEach(this::disposeInlayHints);
+        inlayModel.getInlineElementsInRange(0, focusedEditor.getDocument().getTextLength(), CodeGenHintRenderer.class).forEach(Disposable::dispose);
+        inlayModel.getBlockElementsInRange(0, focusedEditor.getDocument().getTextLength(), CodeGenHintRenderer.class).forEach(Disposable::dispose);
 
         // Update position immediately to prevent repeated calls.
         file.putUserData(STAR_CODER_POSITION, currentPosition);
@@ -277,11 +283,11 @@ implements StatusBarWidget.Multiframe, StatusBarWidget.IconPresentation,
         }));
     }
 
-    private void disposeInlayHints(Inlay<?> inlay) {
-        if(inlay.getRenderer() instanceof CodeGenHintRenderer) {
-            inlay.dispose();
-        }
-    }
+//    private void disposeInlayHints(Inlay<?> inlay) {
+//        if(inlay.getRenderer() instanceof CodeGenHintRenderer) {
+//            inlay.dispose();
+//        }
+//    }
 
     private void addCodeSuggestion(Editor focusedEditor, VirtualFile file, int suggestionPosition, String[] hintList) {
         WriteCommandAction.runWriteCommandAction(focusedEditor.getProject(), () -> {
@@ -293,8 +299,8 @@ implements StatusBarWidget.Multiframe, StatusBarWidget.IconPresentation,
             file.putUserData(STAR_CODER_POSITION, suggestionPosition);
 
             InlayModel inlayModel = focusedEditor.getInlayModel();
-            inlayModel.getInlineElementsInRange(0, focusedEditor.getDocument().getTextLength()).forEach(this::disposeInlayHints);
-            inlayModel.getBlockElementsInRange(0, focusedEditor.getDocument().getTextLength()).forEach(this::disposeInlayHints);
+            inlayModel.getInlineElementsInRange(0, focusedEditor.getDocument().getTextLength(), CodeGenHintRenderer.class).forEach(Disposable::dispose);
+            inlayModel.getBlockElementsInRange(0, focusedEditor.getDocument().getTextLength(), CodeGenHintRenderer.class).forEach(Disposable::dispose);
             if (hintList != null && hintList.length > 0) {
                 // The first line is an inline element
                 if (hintList[0].trim().length() > 0) {
