@@ -88,6 +88,8 @@ public class SettingsPanel {
 
     public void setEnableSAYTCheckBox(boolean enableSAYT) {
         enableSAYTCheckBox.setSelected(enableSAYT);
+        tabActionLabel.setEnabled(enableSAYT);
+        tabActionComboBox.setEnabled(enableSAYT);
     }
 
     public TabActionOption getTabActionOption() {
