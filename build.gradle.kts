@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "com.videogameaholic"
-version = "0.230703"
+version = "0.230711"
 
 repositories {
     mavenCentral()

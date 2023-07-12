@@ -38,7 +38,7 @@
     ]]></description>
 
     <change-notes><![CDATA[
-    <p><b>XXX</b></p>
+    <p><b>0.230711</b></p>
     <ul>
         <li>Added a delayed queue to reduce API call frequency.</li>
     </ul>
