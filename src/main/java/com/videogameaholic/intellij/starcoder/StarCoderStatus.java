@@ -7,7 +7,9 @@ public enum StarCoderStatus {
     OK(200,"OK"),
     BAD_REQUEST(400,"Bad request/token"),
     NOT_FOUND(404,"404 Not found"),
-    TOO_MANY_REQUESTS(429,"Too many requests right now");
+    TOO_MANY_REQUESTS(429,"Too many requests right now"),
+    BAD_GATEWAY(502, "Bad gateway"),
+    UNAVAILABLE(503,"Service unavailable");
 
     private int code;
     private String displayValue;
