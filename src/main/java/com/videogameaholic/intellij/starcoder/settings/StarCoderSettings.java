@@ -14,8 +14,6 @@ import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.logging.Logger;
-
 @State(name = "StarCoderSettings", storages = @Storage("starcoder_settings.xml"))
 public class StarCoderSettings implements PersistentStateComponent<Element> {
     public static final String SETTINGS_TAG = "StarCoderSettings";
@@ -119,8 +117,6 @@ public class StarCoderSettings implements PersistentStateComponent<Element> {
     }
 
     public void setApiToken(String apiToken) {
-        if(apiToken.isBlank() && !PasswordSafe.getInstance().get(CREDENTIAL_ATTRIBUTES).getPasswordAsString().isBlank())
-            Notifications.Bus.notify(new Notification("StarCoder","StarCoder", "StarCoder API token is required.", NotificationType.WARNING));
         PasswordSafe.getInstance().set(CREDENTIAL_ATTRIBUTES, new Credentials(null, apiToken));
     }
 

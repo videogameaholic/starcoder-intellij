@@ -35,12 +35,6 @@ public class StarCoderService {
         StarCoderSettings settings = StarCoderSettings.getInstance();
         if(!settings.isSaytEnabled()) return null;
 
-        // TODO Notification banner?
-        if(StringUtils.isEmpty(settings.getApiToken())) {
-            Notifications.Bus.notify(new Notification("StarCoder","StarCoder", "StarCoder API token is required.", NotificationType.WARNING));
-            return null;
-        }
-
         String contents = editorContents.toString();
         if(contents.contains(PREFIX_TAG) || contents.contains(SUFFIX_TAG) || contents.contains(MIDDLE_TAG) || contents.contains(END_TAG)) return null;
 
@@ -82,7 +76,7 @@ public class StarCoderService {
         float repetitionPenalty = settings.getRepetitionPenalty();
 
         HttpPost httpPost = new HttpPost(apiURL);
-        httpPost.setHeader(HttpHeaders.AUTHORIZATION, "Bearer " + bearerToken);
+        if(!bearerToken.isBlank()) httpPost.setHeader(HttpHeaders.AUTHORIZATION, "Bearer " + bearerToken);
         JsonObject httpBody = new JsonObject();
         httpBody.addProperty("inputs", starCoderPrompt);
 
@@ -142,11 +136,6 @@ public class StarCoderService {
         String replacement = prompt;
 
         StarCoderSettings settings = StarCoderSettings.getInstance();
-        if(StringUtils.isEmpty(settings.getApiToken())) {
-            Notifications.Bus.notify(new Notification("StarCoder","StarCoder", "StarCoder API token is required.", NotificationType.WARNING));
-            return replacement;
-        }
-
         HttpPost httpPost = buildApiPost(settings, prompt);
         String generatedText = getApiResponse(httpPost);
         if(!StringUtils.isEmpty(generatedText)) {
