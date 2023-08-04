@@ -119,6 +119,8 @@ public class StarCoderSettings implements PersistentStateComponent<Element> {
     }
 
     public void setApiToken(String apiToken) {
+        if(apiToken.isBlank() && !PasswordSafe.getInstance().get(CREDENTIAL_ATTRIBUTES).getPasswordAsString().isBlank())
+            Notifications.Bus.notify(new Notification("StarCoder","StarCoder", "StarCoder API token is required.", NotificationType.WARNING));
         PasswordSafe.getInstance().set(CREDENTIAL_ATTRIBUTES, new Credentials(null, apiToken));
     }
 
