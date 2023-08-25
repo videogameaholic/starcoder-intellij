@@ -74,7 +74,7 @@ public class StarCoderSettingsProvider implements EditorOptionsProvider {
                 }
             }
             Notifications.Bus.notify(
-                    new Notification("StarCoder","StarCoder", "StarCoder API token is required.", NotificationType.WARNING)
+                    new Notification("StarCoder","StarCoder", "StarCoder API token is recommended.", NotificationType.WARNING)
                     ,activeProject);
         }
 
