@@ -1,6 +1,9 @@
 package com.videogameaholic.intellij.starcoder.settings;
 
 import com.intellij.application.options.editor.EditorOptionsProvider;
+import com.intellij.notification.Notification;
+import com.intellij.notification.NotificationType;
+import com.intellij.notification.Notifications;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
@@ -12,6 +15,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.awt.*;
 
 public class StarCoderSettingsProvider implements EditorOptionsProvider {
     private SettingsPanel settingsPanel;
@@ -60,6 +64,19 @@ public class StarCoderSettingsProvider implements EditorOptionsProvider {
         savedSettings.setMaxNewTokens(settingsPanel.getMaxNewTokens());
         savedSettings.setTopP(settingsPanel.getTopP());
         savedSettings.setRepetitionPenalty(settingsPanel.getRepetition());
+        if(settingsPanel.getApiToken().isBlank()){
+            Project[] projects = ProjectManager.getInstance().getOpenProjects();
+            Project activeProject = null;
+            for (Project project : projects) {
+                Window window = WindowManager.getInstance().suggestParentWindow(project);
+                if (window != null && window.isActive()) {
+                    activeProject = project;
+                }
+            }
+            Notifications.Bus.notify(
+                    new Notification("StarCoder","StarCoder", "StarCoder API token is recommended.", NotificationType.WARNING)
+                    ,activeProject);
+        }
 
         // Update the widget
         for (Project openProject : ProjectManager.getInstance().getOpenProjects()) {
