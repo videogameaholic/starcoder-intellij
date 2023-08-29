@@ -1,10 +1,12 @@
 plugins {
     id("java")
     id("org.jetbrains.intellij") version "1.8.0"
+
+    kotlin("jvm") version "1.9.10"
 }
 
 group = "com.videogameaholic"
-version = "0.230711"
+version = "0.230828"
 
 repositories {
     mavenCentral()
@@ -17,6 +19,10 @@ intellij {
     type.set("IC") // Target IDE Platform
 
     plugins.set(listOf(/* Plugin Dependencies */))
+}
+
+kotlin {
+    jvmToolchain(11)
 }
 
 tasks {
