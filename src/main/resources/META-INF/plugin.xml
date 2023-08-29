@@ -38,6 +38,11 @@
     ]]></description>
 
     <change-notes><![CDATA[
+    <p><b>0.230829</b></p>
+    <ul>
+        <li>API token now optional, but recommended.</li>
+        <li>Refactored hint renderer.</li>
+    </ul>
     <p><b>0.230711</b></p>
     <ul>
         <li>Added a delayed queue to reduce API call frequency.</li>
