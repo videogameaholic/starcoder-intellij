@@ -3,9 +3,6 @@ package com.videogameaholic.intellij.starcoder;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import com.intellij.notification.Notification;
-import com.intellij.notification.NotificationType;
-import com.intellij.notification.Notifications;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.wm.WindowManager;
@@ -43,7 +40,6 @@ public class StarCoderService {
         String starCoderPrompt = generateFIMPrompt(prefix, suffix);
 
         HttpPost httpPost = buildApiPost(settings, starCoderPrompt);
-        System.out.println("Calling API: "+cursorPosition);
         String generatedText = getApiResponse(httpPost);
         String[] suggestionList = null;
         if(generatedText.contains(MIDDLE_TAG)) {

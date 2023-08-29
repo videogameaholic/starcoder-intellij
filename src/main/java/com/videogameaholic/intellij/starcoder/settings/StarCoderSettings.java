@@ -3,9 +3,6 @@ package com.videogameaholic.intellij.starcoder.settings;
 import com.intellij.credentialStore.CredentialAttributes;
 import com.intellij.credentialStore.Credentials;
 import com.intellij.ide.passwordSafe.PasswordSafe;
-import com.intellij.notification.Notification;
-import com.intellij.notification.NotificationType;
-import com.intellij.notification.Notifications;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.State;
@@ -13,8 +10,6 @@ import com.intellij.openapi.components.Storage;
 import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.logging.Logger;
 
 @State(name = "StarCoderSettings", storages = @Storage("starcoder_settings.xml"))
 public class StarCoderSettings implements PersistentStateComponent<Element> {
@@ -37,8 +32,6 @@ public class StarCoderSettings implements PersistentStateComponent<Element> {
     private float repetitionPenalty = 1.2f;
 
     private static final StarCoderSettings starCoderSettingsInstance = new StarCoderSettings();
-
-    private static StarCoderSettings instance;
 
     @Override
     public @Nullable Element getState() {
@@ -79,18 +72,15 @@ public class StarCoderSettings implements PersistentStateComponent<Element> {
     }
 
     public static StarCoderSettings getInstance() {
-        if(instance == null){
-            instance = ApplicationManager.getApplication().getService(StarCoderSettings.class);
-            if(instance.getApiToken().isBlank())
-                Notifications.Bus.notify(new Notification("StarCoder","StarCoder", "StarCoder API token is required.", NotificationType.WARNING));
-        }
         if (ApplicationManager.getApplication() == null) {
             return starCoderSettingsInstance;
         }
-        if(instance == null) {
+
+        StarCoderSettings service = ApplicationManager.getApplication().getService(StarCoderSettings.class);
+        if(service == null) {
             return starCoderSettingsInstance;
         }
-        return instance;
+        return service;
     }
 
     public boolean isSaytEnabled() {
@@ -119,8 +109,6 @@ public class StarCoderSettings implements PersistentStateComponent<Element> {
     }
 
     public void setApiToken(String apiToken) {
-        if(apiToken.isBlank() && !PasswordSafe.getInstance().get(CREDENTIAL_ATTRIBUTES).getPasswordAsString().isBlank())
-            Notifications.Bus.notify(new Notification("StarCoder","StarCoder", "StarCoder API token is required.", NotificationType.WARNING));
         PasswordSafe.getInstance().set(CREDENTIAL_ATTRIBUTES, new Credentials(null, apiToken));
     }
 

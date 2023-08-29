@@ -275,19 +275,12 @@ implements StatusBarWidget.Multiframe, StatusBarWidget.IconPresentation,
 
         StarCoderService starCoder = ApplicationManager.getApplication().getService(StarCoderService.class);
         CharSequence editorContents = focusedEditor.getDocument().getCharsSequence();
-        System.out.println("Queued update: "+currentPosition+" for "+file.getName());
 
         serviceQueue.queue(Update.create(focusedEditor,() -> {
             String[] hintList = starCoder.getCodeCompletionHints(editorContents, currentPosition);
             this.addCodeSuggestion(focusedEditor, file, currentPosition, hintList);
         }));
     }
-
-//    private void disposeInlayHints(Inlay<?> inlay) {
-//        if(inlay.getRenderer() instanceof CodeGenHintRenderer) {
-//            inlay.dispose();
-//        }
-//    }
 
     private void addCodeSuggestion(Editor focusedEditor, VirtualFile file, int suggestionPosition, String[] hintList) {
         WriteCommandAction.runWriteCommandAction(focusedEditor.getProject(), () -> {
@@ -311,8 +304,6 @@ implements StatusBarWidget.Multiframe, StatusBarWidget.IconPresentation,
                     inlayModel.addBlockElement(suggestionPosition, false, false, 0, new CodeGenHintRenderer(hintList[i]));
                 }
             }
-
-            System.out.println("Completed update: "+suggestionPosition+" for "+file.getName());
         });
     }
 }
