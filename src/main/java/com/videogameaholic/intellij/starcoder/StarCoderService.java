@@ -27,9 +27,7 @@ public class StarCoderService {
         StarCoderSettings settings = StarCoderSettings.getInstance();
         if(!settings.isSaytEnabled()) return null;
 
-//        PromptModel fimModel = settings.getFIMTokenModel();
-        PromptModel fimModel = PromptModel.STARCODER;
-
+        PromptModel fimModel = settings.getFimTokenModel();
         String starCoderPrompt = fimModel.generateFIMPrompt("",editorContents.toString(),cursorPosition);
         if(starCoderPrompt.isEmpty()) return null;
 

@@ -49,7 +49,8 @@ public class StarCoderSettingsProvider implements EditorOptionsProvider {
                 || savedSettings.getTemperature() != Float.parseFloat(settingsPanel.getTemperature())
                 || savedSettings.getMaxNewTokens() != Integer.parseInt(settingsPanel.getMaxNewTokens())
                 || savedSettings.getTopP() != Float.parseFloat(settingsPanel.getTopP())
-                || savedSettings.getRepetitionPenalty() != Float.parseFloat(settingsPanel.getRepetition());
+                || savedSettings.getRepetitionPenalty() != Float.parseFloat(settingsPanel.getRepetition())
+                ||!savedSettings.getFimTokenModel().equals(settingsPanel.getFimTokenModel());
     }
 
     @Override
@@ -64,6 +65,7 @@ public class StarCoderSettingsProvider implements EditorOptionsProvider {
         savedSettings.setMaxNewTokens(settingsPanel.getMaxNewTokens());
         savedSettings.setTopP(settingsPanel.getTopP());
         savedSettings.setRepetitionPenalty(settingsPanel.getRepetition());
+        savedSettings.setFimTokenModel(settingsPanel.getFimTokenModel());
         if(settingsPanel.getApiToken().isBlank()){
             Project[] projects = ProjectManager.getInstance().getOpenProjects();
             Project activeProject = null;
@@ -96,5 +98,6 @@ public class StarCoderSettingsProvider implements EditorOptionsProvider {
         settingsPanel.setMaxNewTokens(String.valueOf(savedSettings.getMaxNewTokens()));
         settingsPanel.setTopP(String.valueOf(savedSettings.getTopP()));
         settingsPanel.setRepetition(String.valueOf(savedSettings.getRepetitionPenalty()));
+        settingsPanel.setFimTokenModel(savedSettings.getFimTokenModel());
     }
 }

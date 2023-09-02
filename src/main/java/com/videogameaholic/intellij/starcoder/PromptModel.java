@@ -3,6 +3,7 @@ package com.videogameaholic.intellij.starcoder;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nullable;
+import java.util.stream.Stream;
 
 public enum PromptModel {
     STARCODER ("starcoder","StarCoder", "<fim_prefix>","<fim_suffix>","<fim_middle>", "<|endoftext|>"),
@@ -33,6 +34,17 @@ public enum PromptModel {
 
     public String getDisplayName() {
         return displayName;
+    }
+
+    public String toString() {
+        return displayName;
+    }
+
+    public static PromptModel fromId(String attributeValue) {
+        return Stream.of(PromptModel.values())
+                .filter(model -> model.getId().equals(attributeValue))
+                .findFirst()
+                .orElse(PromptModel.STARCODER);
     }
 
     public String generateFIMPrompt(String metaData, String code, int fillPosition) {
