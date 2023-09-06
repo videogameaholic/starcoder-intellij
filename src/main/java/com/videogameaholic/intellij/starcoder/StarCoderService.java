@@ -3,6 +3,7 @@ package com.videogameaholic.intellij.starcoder;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonSyntaxException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.wm.WindowManager;
@@ -18,6 +19,7 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 
 import java.io.IOException;
+import java.util.Optional;
 
 public class StarCoderService {
 
@@ -79,16 +81,11 @@ public class StarCoderService {
             if (statusCode != 200) {
                 return responseText;
             }
-
-            Gson gson = new Gson();
             String responseBody = EntityUtils.toString(response.getEntity());
-            JsonArray responseArray = gson.fromJson(responseBody, JsonArray.class);
-            if(responseArray.size()>0) {
-                JsonObject responseObject = responseArray.get(0).getAsJsonObject();
-                if(responseObject.get("generated_text")!=null) {
-                    responseText = responseObject.get("generated_text").getAsString();
-                }
-            }
+
+            Optional<String> optionalText = tryParseFromJsonArray(responseBody);
+
+            responseText = optionalText.orElse(tryParseFromJsonObject(responseBody).orElse(""));
 
             httpClient.close();
 
@@ -96,6 +93,38 @@ public class StarCoderService {
             // TODO log exception
         }
         return responseText;
+    }
+
+    private static Optional<String> tryParseFromJsonArray(String responseBody) throws IOException {
+        Gson gson = new Gson();
+
+        JsonArray responseArray;
+
+        try {
+            responseArray = gson.fromJson(responseBody, JsonArray.class);
+        } catch (JsonSyntaxException ignored) {
+            return Optional.empty();
+        }
+
+        if (responseArray.size() > 0) {
+            JsonObject responseObject = responseArray.get(0).getAsJsonObject();
+            return extractGeneratedText(responseObject);
+        }
+
+        throw new IllegalArgumentException("Response has empty body array");
+    }
+
+    private Optional<String> tryParseFromJsonObject(String responseBody) {
+        Gson gson = new Gson();
+        JsonObject responseObject = gson.fromJson(responseBody, JsonObject.class);
+        return extractGeneratedText(responseObject);
+    }
+
+    private static Optional<String> extractGeneratedText(JsonObject responseObject) {
+        if (responseObject.get("generated_text") != null) {
+            return Optional.of(responseObject.get("generated_text").getAsString());
+        }
+        throw new IllegalArgumentException("Invalid response body missing \\'generated_text\\' key");
     }
 
     public String replacementSuggestion (String prompt) {
