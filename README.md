@@ -10,7 +10,8 @@ More information: https://huggingface.co/bigcode/starcoder
 
 * AI code completion suggestions as you type.
 * Prompt AI with selected text in the editor.
-* Modify API URL to switch between StarCoder models.
+* Modify API URL to switch between model endpoints.
+* Supports StarCoder, SantaCoder, and Code Llama models.
 * Advanced parameters for model response adjustment.
 
 ## Getting Started:

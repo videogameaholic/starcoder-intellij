@@ -22,7 +22,8 @@
     <ul>
         <li>AI code completion suggestions as you type.</li>
         <li>Prompt AI with selected text in the editor.</li>
-        <li>Modify API URL to switch between StarCoder models.</li>
+        <li>Modify API URL to switch between model endpoints.</li>
+        <li>Supports StarCoder, SantaCoder, and Code Llama models.</li>
         <li>Advanced parameters for model response adjustment.</li>
     </ul>
     </p>
@@ -38,6 +39,11 @@
     ]]></description>
 
     <change-notes><![CDATA[
+    <p><b>0.230905</b></p>
+    <ul>
+        <li>Added support for SantaCoder and Code Llama models.</li>
+        <li>Added setting to switch between FIM models.</li>
+    </ul>
     <p><b>0.230829</b></p>
     <ul>
         <li>API token now optional, but recommended.</li>
