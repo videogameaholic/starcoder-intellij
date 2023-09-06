@@ -7,6 +7,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
+import com.videogameaholic.intellij.starcoder.PromptModel;
 import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -22,6 +23,7 @@ public class StarCoderSettings implements PersistentStateComponent<Element> {
     private static final String MAX_NEW_TOKENS_TAG = "MAX_NEW_TOKENS";
     private static final String TOP_P_TAG = "TOP_P";
     private static final String REPEAT_PENALTY_TAG = "REPEAT_PENALTY";
+    private static final String FIM_MODEL_TAG = "FIM_TOKEN_MODEL";
 
     private boolean saytEnabled = true;
     private String apiURL = "https://api-inference.huggingface.co/models/bigcode/starcoder";
@@ -30,6 +32,7 @@ public class StarCoderSettings implements PersistentStateComponent<Element> {
     private int maxNewTokens = 256;
     private float topP = 0.9f;
     private float repetitionPenalty = 1.2f;
+    private PromptModel fimTokenModel = PromptModel.STARCODER;
 
     private static final StarCoderSettings starCoderSettingsInstance = new StarCoderSettings();
 
@@ -43,6 +46,7 @@ public class StarCoderSettings implements PersistentStateComponent<Element> {
         state.setAttribute(MAX_NEW_TOKENS_TAG, String.valueOf(getMaxNewTokens()));
         state.setAttribute(TOP_P_TAG, String.valueOf(getTopP()));
         state.setAttribute(REPEAT_PENALTY_TAG, String.valueOf(getRepetitionPenalty()));
+        state.setAttribute(FIM_MODEL_TAG, getFimTokenModel().getId());
         return state;
     }
 
@@ -68,6 +72,9 @@ public class StarCoderSettings implements PersistentStateComponent<Element> {
         }
         if(state.getAttributeValue(REPEAT_PENALTY_TAG)!=null){
             setRepetitionPenalty(state.getAttributeValue(REPEAT_PENALTY_TAG));
+        }
+        if(state.getAttributeValue(FIM_MODEL_TAG)!=null){
+            setFimTokenModel(PromptModel.fromId(state.getAttributeValue(FIM_MODEL_TAG)));
         }
     }
 
@@ -150,5 +157,13 @@ public class StarCoderSettings implements PersistentStateComponent<Element> {
 
     public void setTabActionOption(TabActionOption tabActionOption) {
         this.tabActionOption = tabActionOption;
+    }
+
+    public PromptModel getFimTokenModel(){
+    	return fimTokenModel;
+    }
+
+    public void setFimTokenModel(PromptModel fimTokenModel){
+        this.fimTokenModel=fimTokenModel;
     }
 }
