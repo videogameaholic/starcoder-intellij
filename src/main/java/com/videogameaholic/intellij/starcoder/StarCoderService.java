@@ -82,10 +82,8 @@ public class StarCoderService {
                 return responseText;
             }
             String responseBody = EntityUtils.toString(response.getEntity());
-
-            Optional<String> optionalText = tryParseFromJsonArray(responseBody);
-
-            responseText = optionalText.orElse(tryParseFromJsonObject(responseBody).orElse(""));
+            JsonObject responseObject = parseResponse(responseBody);
+            responseText = extractGeneratedText(responseObject).orElse("");
 
             httpClient.close();
 
@@ -95,32 +93,24 @@ public class StarCoderService {
         return responseText;
     }
 
-    private static Optional<String> tryParseFromJsonArray(String responseBody) throws IOException {
+    private JsonObject parseResponse(String responseBody) throws IOException {
         Gson gson = new Gson();
-
         JsonArray responseArray;
 
         try {
             responseArray = gson.fromJson(responseBody, JsonArray.class);
+            if (responseArray.size() > 0) {
+                return responseArray.get(0).getAsJsonObject();
+            }
         } catch (JsonSyntaxException ignored) {
-            return Optional.empty();
-        }
-
-        if (responseArray.size() > 0) {
-            JsonObject responseObject = responseArray.get(0).getAsJsonObject();
-            return extractGeneratedText(responseObject);
+            // Fallback.  Response may be an object rather than an array.
+            return gson.fromJson(responseBody, JsonObject.class);
         }
 
         throw new IllegalArgumentException("Response has empty body array");
     }
 
-    private Optional<String> tryParseFromJsonObject(String responseBody) {
-        Gson gson = new Gson();
-        JsonObject responseObject = gson.fromJson(responseBody, JsonObject.class);
-        return extractGeneratedText(responseObject);
-    }
-
-    private static Optional<String> extractGeneratedText(JsonObject responseObject) {
+    private Optional<String> extractGeneratedText(JsonObject responseObject) {
         if (responseObject.get("generated_text") != null) {
             return Optional.of(responseObject.get("generated_text").getAsString());
         }
